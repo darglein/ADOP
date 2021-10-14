@@ -20,5 +20,9 @@ rasterization allows us to use arbitrary camera models and display scenes with
 well over 100M points in real time.
 
 * The source code will be published after the paper has been accepted to a conference.
-* Arxiv Link: (comming soon)
-* Youbube Link: (comming soon)
+
+[[Full Paper]](https://arxiv.org/abs/2110.06635)
+
+### Video
+
+[![Watch the video](https://img.youtube.com/vi/zVf0HqzHY3U/hqdefault.jpg)](https://www.youtube.com/watch?v=zVf0HqzHY3U)
