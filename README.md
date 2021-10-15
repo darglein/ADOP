@@ -25,4 +25,4 @@ well over 100M points in real time.
 
 ### Video
 
-[![Watch the video](https://img.youtube.com/vi/zVf0HqzHY3U/hqdefault.jpg)](https://www.youtube.com/watch?v=zVf0HqzHY3U)
+[![Watch the video](https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg)](https://www.youtube.com/watch?v=WJRyu1JUtVw)
