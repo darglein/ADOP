@@ -80,7 +80,7 @@ cd ADOP
     * Right click in 3DView: Select camera
     * Q: Move camera to selected camera
 
-<img  width="400"  src="images/adop_viewer.jpeg"> <img width="400"  src="images/adop_viewer_demo.gif">
+<img  width="400"  src="images/adop_viewer.png"> <img width="400"  src="images/adop_viewer_demo.gif">
 
 
 ### Scene Description
