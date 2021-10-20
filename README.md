@@ -1,5 +1,10 @@
 # ADOP: Approximate Differentiable One-Pixel Point Rendering
 
+<div style="text-align: center;">Darius Rückert, Linus Franke, Marc Stamminger</div>
+
+![](images/adop_overview.png)
+
+
 **Abstract:** We present a novel point-based, differentiable neural rendering pipeline for
 scene refinement and novel view synthesis. The input are an initial estimate of
 the point cloud and the camera parameters. The output are synthesized images
@@ -25,4 +30,63 @@ well over 100M points in real time.
 
 ### Video
 
-[![Watch the video](https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg)](https://www.youtube.com/watch?v=WJRyu1JUtVw)
+  <a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
+
+
+### Compile Instructions
+
+ * ADOP is implemented in C++/CUDA using libTorch.
+ * A python wrapper for pyTorch is currently not available. Feel free to submit a pull-request on that issue.
+ * The detailed compile instructions can be found here: [src/README.md](src/README.md)
+
+### Running ADOP on pretrained models
+
+After a successful compilation, the best way to get started is to run `adop_viewer` on the *tanks and temples* scenes using our pretrained models.
+First, download the [scenes](todo) and extract them into `ADOP/scenes`. 
+Now, download the [model checkpoints](todo) and extract them into `ADOP/experiments`.
+Your folder structure should look like this:
+```shell
+ADOP/
+    build/
+        ...
+    scenes/
+        tt_train/
+        tt_playground/
+        ...
+    experiments/
+        2021-10-15_08:26:49_multi_scene/
+        ...
+```
+
+
+### ADOP Viewer
+
+The `adop_viewer` can now be run by passing a scene and the experiment directory. 
+For example:
+```shell
+cd ADOP
+./build/bin/adop_viewer scenes/tt_playground experiments/
+```
+
+ * The working dir of `adop_viewer` must be the ADOP root directory.
+ * Pass the parent experiment directory and not a specific experiment. You can switch between experiments inside the viewer.
+ * The most important keyboard shortcuts are:
+    * F1: Switch to 3DView
+    * F2: Switch to neural view
+    * F3: Switch to split view (default)
+    * WASD: Move camera
+    * Center Mouse + Drag: Rotate around camera center
+    * Left Mouse + Drag: Rotate around world center
+    * Right click in 3DView: Select camera
+    * Q: Move camera to selected camera
+
+<img  width="400"  src="images/adop_viewer.jpeg"> <img width="400"  src="images/adop_viewer_demo.gif">
+
+
+### Scene Description
+ * ADOP uses a simple, text-based scene description format.
+ * To run ADOP on your scenes you have to convert them into this format.
+ * After that you run adop_scene_preprocess to precompute various parameters.
+ * If you have created your scene with COLMAP (like us) you can use the colmap2adop converter.
+ * More infos on this topic can be found here: [scenes/README.md](scenes/README.md)
+
