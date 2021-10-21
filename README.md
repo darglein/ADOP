@@ -82,6 +82,28 @@ cd ADOP
 
 <img  width="400"  src="images/adop_viewer.png"> <img width="400"  src="images/adop_viewer_demo.gif">
 
+## HDR Scenes
+
+ADOP supports HDR scenes due to the physically-based tone mapper.
+The input images can therefore have different exposure settings.
+The dynamic range of a scene is the difference between the smallest and largest EV of all images.
+For example, our boat scene (see below) has a dynamic range of ~10 stops.
+If you want to fit ADOP to your own HDR scene consider the following:
+
+ * For small dynamic ranges (<4) you can use the default pipeline.
+ * For scenes with a large dynamic range, change to the log texture format and reduce the texture learning rate. Use the train config of our boat scene as reference.
+ * Check if an initial EV guess is available. Many cameras store the exposure settings in the EXIF data.
+ * Set the scene EV in the dataset.ini to the mean EV of all frames. This keeps the weights in a reasonable range.
+
+When viewing HDR scenes in the `adop_viewer` you can press [F7] to open the tone mapper tab.
+Here you can change the exposure value of the virtual camera.
+In the render settings you find an option to use OpenGL based tone mapping instead of the learned on.
+
+
+
+https://user-images.githubusercontent.com/16142878/138316754-ef8b2a8a-d421-4542-9b7b-4ee86bd15e97.mp4
+
+
 
 ### Scene Description
  * ADOP uses a simple, text-based scene description format.
