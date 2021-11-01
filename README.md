@@ -1,4 +1,4 @@
-_# ADOP: Approximate Differentiable One-Pixel Point Rendering
+# ADOP: Approximate Differentiable One-Pixel Point Rendering
 
 <div style="text-align: center;">Darius Rückert, Linus Franke, Marc Stamminger</div>
 
@@ -199,6 +199,6 @@ https://user-images.githubusercontent.com/16142878/138441327-83b19400-e927-47c7-
 
 https://user-images.githubusercontent.com/16142878/138441057-dc0b0074-8e8e-4ba2-8286-13fd332c8ac1.mp4
 
-https://user-images.githubusercontent.com/16142878/138441154-fa218d86-273c-4db1-951d-c7d39c015844.mp4_
+https://user-images.githubusercontent.com/16142878/138441154-fa218d86-273c-4db1-951d-c7d39c015844.mp4
 
 
