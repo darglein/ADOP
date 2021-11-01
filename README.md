@@ -1,4 +1,4 @@
-# ADOP: Approximate Differentiable One-Pixel Point Rendering
+_# ADOP: Approximate Differentiable One-Pixel Point Rendering
 
 <div style="text-align: center;">Darius Rückert, Linus Franke, Marc Stamminger</div>
 
@@ -24,9 +24,7 @@ reconstruction is refined during training. The efficient one-pixel point
 rasterization allows us to use arbitrary camera models and display scenes with
 well over 100M points in real time.
 
-* The source code will be published after the paper has been accepted to a conference.
-
-[[Full Paper]](https://arxiv.org/abs/2110.06635) [[Youtube]](https://www.youtube.com/watch?v=WJRyu1JUtVw)
+[[Paper]](https://arxiv.org/abs/2110.06635) [[Youtube]](https://www.youtube.com/watch?v=WJRyu1JUtVw) [[Supplementary Material]](https://zenodo.org/record/5602606)
 
 <a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
 
@@ -40,8 +38,8 @@ well over 100M points in real time.
 ## Running ADOP on pretrained models
 
 After a successful compilation, the best way to get started is to run `adop_viewer` on the *tanks and temples* scenes using our pretrained models.
-First, download the [scenes](todo) and extract them into `ADOP/scenes`. 
-Now, download the [model checkpoints](todo) and extract them into `ADOP/experiments`.
+First, download the [scenes](https://zenodo.org/record/5602606/files/scenes.zip?download=1) and extract them into `ADOP/scenes`. 
+Now, download the [model checkpoints](https://zenodo.org/record/5602606/files/experiments.zip?download=1) and extract them into `ADOP/experiments`.
 Your folder structure should look like this:
 ```shell
 ADOP/
@@ -64,7 +62,7 @@ It will automatically search for fitting pretrained models in the `experiments/`
 For example:
 ```shell
 cd ADOP
-./build/bin/adop_viewer --scene_dir scenes/tt_playground
+./build/bin/adop_viewer --scene_dir scenes/boat
 ```
 
  * The working dir of `adop_viewer` must be the ADOP root directory. This is required because the shaders and experiments are search on relative paths. 
@@ -79,6 +77,20 @@ cd ADOP
     * Q: Move camera to selected camera
 
 <img  width="400"  src="images/adop_viewer.png"> <img width="400"  src="images/adop_viewer_demo.gif">
+
+## ADOP VR Viewer
+
+We have implemented **experimental** VR support using OpenVR/SteamVR. 
+Checkout src/README.md for the compilation requirements.
+```shell
+cd ADOP
+./build/bin/adop_vr_viewer --scene_dir scenes/tt_playground
+```
+ * Tune the `render_scale` settings for a compromise between FPS and resolution
+ * Requires a high-end GPU to run reasonable 
+ * Hopefully will be optimized in the future :)
+
+<img src="images/vr.gif">
 
 ## HDR Scenes
 
@@ -106,15 +118,69 @@ https://user-images.githubusercontent.com/16142878/138316754-ef8b2a8a-d421-4542-
  * If you have created your scene with COLMAP (like us) you can use the colmap2adop converter.
  * More infos on this topic can be found here: [scenes/README.md](scenes/README.md)
 
+## Training ADOP
+The ADOP pipeline is fitted to your scenes by the `adop_train` executable.
+All training parameters are stored in a separate config file. 
+The basic syntax is:
+```shell
+cd ADOP
+./build/bin/adop_train --config configs/train_boat.ini
+```
+Make again sure that the working directory is the ADOP root.
+Otherwise, the loss models will not be found.
+
+#### Parameters
+
+In `ADOP/configs/` you will find the train configurations files that we used to create the pretrained models.
+We recommend to start with one these for your scenes.
+ * Choose `configs/train_boat.ini` as a starting point, if your scene has been captured with a high variation of exposure values. (> 5 Stops)
+ * Choose `configs/train_tank_and_temples_multi.ini` as a starting point for indoor scenes or if the images have a similar exposure value.
+
+#### Memory Consumption
+
+Both of our reference training config files were created for a 40GB A100 GPU.
+If you run these on a lower-end GPU you will most likely run out of memory.
+The important config params that control memory consumption are:
+```shell
+# Settings for 40GB A100
+# Size in pixels of the random crop during training
+train_crop_size = 512
+# How many crops are taken per image
+inner_batch_size = 4
+# How many images are batched together. One batch will have inner_batch_size x batch_size = 16 crops!
+batch_size = 4
+```
+
+```shell
+# Settings for 12GB Titan V
+train_crop_size = 256
+inner_batch_size = 8
+batch_size = 2
+```
+
+Additionally, you will find that the point cloud size will also have a significant impact on memory consumption.
+On 12GB cards, we recommend to process only point clouds up to 100M points.
+Otherwise, the batch size will be too small for good results.
+
+#### Duration
+
+As you can see in `configs`, we usually train for 400 epochs. 
+This will take between 12-24h depending on scene size and training hardware.
+However, after 100 epochs (3-6h) the novel view synthesis already works very well.
+You can use this checkpoint in the `adop_viewer` to check if everything is working.
+
+
 ## Supplementary Material
 
-The supplementary material is uploaded to the following OwnCloud directory:
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5602606.svg)](https://doi.org/10.5281/zenodo.5602606)
 
-https://cloud9.cs.fau.de/index.php/s/tM9TaHgyE3cJ6kW
+The supplementary material is published on Zenodo:
+
+https://zenodo.org/record/5602606
 
 This directory includes:
 
- * videos/
+ * videos.zip
       * Additional separated video clips of the scenes.
       * Full-HD, 60 FPS
  * colmap.zip
@@ -131,8 +197,8 @@ This directory includes:
 
 https://user-images.githubusercontent.com/16142878/138441327-83b19400-e927-47c7-828e-ca21fe06c898.mp4
 
-https://user-images.githubusercontent.com/16142878/138455375-8bbf3412-bb44-44e0-a8fd-10fe228e9f05.mp4
+https://user-images.githubusercontent.com/16142878/138441057-dc0b0074-8e8e-4ba2-8286-13fd332c8ac1.mp4
 
-https://user-images.githubusercontent.com/16142878/138441154-fa218d86-273c-4db1-951d-c7d39c015844.mp4
+https://user-images.githubusercontent.com/16142878/138441154-fa218d86-273c-4db1-951d-c7d39c015844.mp4_
 
 

@@ -1,79 +1,80 @@
-## Compile ADOP
+# Compiling ADOP
 
- * Prepare Host System (Ubuntu)
+### 1. Prerequisites
+
+Supported Operating System
+ * Ubuntu 18.04, 20.04
+
+Supported Compiler 
+ * g++-7
+ * g++-9
+
+Required Software
+ * Anaconda
+
 ```shell
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-sudo apt-get update
-sudo apt install g++-9
-g++-9 --version # Should Print Version 9.4.0 or higher
+git clone git@github.com:darglein/ADOP.git
+cd ADOP
+git submodule update --init --recursive --jobs 0
 ```
- * Create Conda Environment
+
+### 2. Setup Environment
  
 ```shell
-conda create -y -n adop python=3.8.1
-conda activate adop
-
-conda install -y cudnn=8.2.1.32 cudatoolkit-dev=11.1 -c nvidia -c conda-forge
-conda install -y astunparse numpy ninja pyyaml mkl mkl-include setuptools cmake=3.19.6 cffi typing_extensions future six requests dataclasses
-conda install -y -c pytorch magma-cuda110
+cd ADOP
+./create_environment.sh
 ```
 
- * Compile Pytorch (Don't use the conda/pip package!)
+### 3. Install Pytorch from Source
+ 
+ * We need a source build because the packaged pytorch was build using the old C++ ABI. 
  
  ```shell
-conda activate adop
-git clone git@github.com:pytorch/pytorch.git
-cd pytorch
-git checkout v1.9.1
-git submodule update --init --recursive --jobs 0
+cd ADOP
+./install_pytorch.sh
+```
 
-export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
-export CC=gcc-9
-export CXX=g++-9
-export CUDAHOSTCXX=g++-9
-python setup.py install
- ```
+### 4. Build ADOP 
 
- * Compile ADOP
- 
 ```shell
 conda activate adop
 git clone git@github.com:darglein/ADOP.git
 cd ADOP
 git submodule update --init --recursive --jobs 0
 
-export CONDA=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
+# Set this to either g++-7 or 9
 export CC=gcc-9
 export CXX=g++-9
 export CUDAHOSTCXX=g++-9
 
 mkdir build
 cd build
-cmake -DCMAKE_PREFIX_PATH="${CONDA}/lib/python3.8/site-packages/torch/;${CONDA}" ..
+export CONDA=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
+cmake -DCMAKE_PREFIX_PATH="${CONDA}/lib/python3.9/site-packages/torch/;${CONDA}" ..
 make -j10
 
 ```
 
-### View Scenes in VR (with OpenVR+SteamVR)
 
- * Install SteamVR
- * Install OpenVR with conda:
+### Building with VR support
 
+ * Install Steam and SteamVR
+ * Add openvr to the adop environment
 ```shell
-conda install -c schrodinger openvr 
+conda activate adop
+conda install -y -c schrodinger openvr 
 ```
- * Rebuild Project
-```shell
-cd ADOP
-rm -rf build
+ * Compile ADOP again
 
-# Execute the steps again from
-# Compile ADOP
-```
+### Headless Build
 
- * Run a scene in the VR viewer
+ * On remote servers without Xorg we recommend the headless build.
+ * Add the following flag to the `cmake` command of ADOP:
+ * `-DADOP_HEADLESS=ON`
+ * Note, `adop_viewer` can not be build headless.
 
-```shell
-cd ADOP
-./build/bin/VRviewer scenes/tt_playground Experiments/playground/ep400/
-```****
+### Troubleshooting
+
+`libNVxxxx.so` not found when launching an executable
+ * Add the `lib/` directory of the conda environment to `LD_LIBRARY_PATH`
+ * Example: `export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:~/anaconda3/envs/adop/lib`
