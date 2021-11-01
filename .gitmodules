@@ -1,0 +1,9 @@
+[submodule "External/saiga"]
+	path = External/saiga
+	url = ../../darglein/saiga.git
+[submodule "External/pytorch"]
+	path = External/pytorch
+	url = ../../pytorch/pytorch.git
+[submodule "External/torchvision"]
+	path = External/torchvision
+	url = ../../pytorch/vision.git
