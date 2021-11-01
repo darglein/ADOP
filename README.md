@@ -26,20 +26,18 @@ well over 100M points in real time.
 
 * The source code will be published after the paper has been accepted to a conference.
 
-[[Full Paper]](https://arxiv.org/abs/2110.06635)
+[[Full Paper]](https://arxiv.org/abs/2110.06635) [[Youtube]](https://www.youtube.com/watch?v=WJRyu1JUtVw)
 
-### Video
-
-  <a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
+<a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
 
 
-### Compile Instructions
+## Compile Instructions
 
  * ADOP is implemented in C++/CUDA using libTorch.
  * A python wrapper for pyTorch is currently not available. Feel free to submit a pull-request on that issue.
  * The detailed compile instructions can be found here: [src/README.md](src/README.md)
 
-### Running ADOP on pretrained models
+## Running ADOP on pretrained models
 
 After a successful compilation, the best way to get started is to run `adop_viewer` on the *tanks and temples* scenes using our pretrained models.
 First, download the [scenes](todo) and extract them into `ADOP/scenes`. 
@@ -59,17 +57,17 @@ ADOP/
 ```
 
 
-### ADOP Viewer
+## ADOP Viewer
 
-The `adop_viewer` can now be run by passing a scene and the experiment directory. 
+The `adop_viewer` can now be run by passing the path to a scene. 
+It will automatically search for fitting pretrained models in the `experiments/` directory.
 For example:
 ```shell
 cd ADOP
-./build/bin/adop_viewer scenes/tt_playground experiments/
+./build/bin/adop_viewer --scene_dir scenes/tt_playground
 ```
 
- * The working dir of `adop_viewer` must be the ADOP root directory.
- * Pass the parent experiment directory and not a specific experiment. You can switch between experiments inside the viewer.
+ * The working dir of `adop_viewer` must be the ADOP root directory. This is required because the shaders and experiments are search on relative paths. 
  * The most important keyboard shortcuts are:
     * F1: Switch to 3DView
     * F2: Switch to neural view
@@ -82,11 +80,59 @@ cd ADOP
 
 <img  width="400"  src="images/adop_viewer.png"> <img width="400"  src="images/adop_viewer_demo.gif">
 
+## HDR Scenes
 
-### Scene Description
+ADOP supports HDR scenes due to the physically-based tone mapper.
+The input images can therefore have different exposure settings.
+The dynamic range of a scene is the difference between the smallest and largest EV of all images.
+For example, our boat scene (see below) has a dynamic range of ~10 stops.
+If you want to fit ADOP to your own HDR scene consider the following:
+
+ * For small dynamic ranges (<4) you can use the default pipeline.
+ * For scenes with a large dynamic range, change to the log texture format and reduce the texture learning rate. Use the train config of our boat scene as reference.
+ * Check if an initial EV guess is available. Many cameras store the exposure settings in the EXIF data.
+ * Set the scene EV in the dataset.ini to the mean EV of all frames. This keeps the weights in a reasonable range.
+ 
+When viewing HDR scenes in the `adop_viewer` you can press [F7] to open the tone mapper tab.
+Here you can change the exposure value of the virtual camera.
+In the render settings you find an option to use OpenGL based tone mapping instead of the learned on.
+
+https://user-images.githubusercontent.com/16142878/138316754-ef8b2a8a-d421-4542-9b7b-4ee86bd15e97.mp4
+
+## Scene Description
  * ADOP uses a simple, text-based scene description format.
  * To run ADOP on your scenes you have to convert them into this format.
  * After that you run adop_scene_preprocess to precompute various parameters.
  * If you have created your scene with COLMAP (like us) you can use the colmap2adop converter.
  * More infos on this topic can be found here: [scenes/README.md](scenes/README.md)
+
+## Supplementary Material
+
+The supplementary material is uploaded to the following OwnCloud directory:
+
+https://cloud9.cs.fau.de/index.php/s/tM9TaHgyE3cJ6kW
+
+This directory includes:
+
+ * videos/
+      * Additional separated video clips of the scenes.
+      * Full-HD, 60 FPS
+ * colmap.zip
+      * The COLMAP reconstructions of our 5 scenes (boat + 4 tanks and temple scenes)
+      * Includes triangle meshes to compare other approaches.
+ * scenes.zip
+      * The preprocessed scenes in our scene format
+      * Required to run the pretrained model
+ * experiments.zip
+      * The pretrained models for all 5 scenes.
+      * The 4 tanks and temples scenes were trained simultaneously and are therefore combined into a single experiment. They also share the same rendering network.
+
+#### Preview Videos
+
+https://user-images.githubusercontent.com/16142878/138441327-83b19400-e927-47c7-828e-ca21fe06c898.mp4
+
+https://user-images.githubusercontent.com/16142878/138455375-8bbf3412-bb44-44e0-a8fd-10fe228e9f05.mp4
+
+https://user-images.githubusercontent.com/16142878/138441154-fa218d86-273c-4db1-951d-c7d39c015844.mp4
+
 
