@@ -169,6 +169,27 @@ This will take between 12-24h depending on scene size and training hardware.
 However, after 100 epochs (3-6h) the novel view synthesis already works very well.
 You can use this checkpoint in the `adop_viewer` to check if everything is working.
 
+## Camera Models
+
+ADOP currently supports two different camera models. 
+The [Pinhole/Distortion](https://docs.opencv.org/4.5.4/d9/d0c/group__calib3d.html) camera model 
+and the [Omnidirectional](https://sites.google.com/site/scarabotix/ocamcalib-omnidirectional-camera-calibration-toolbox-for-matlab?authuser=0) camera model. 
+
+#### Pinhole/Distortion Camera Model
+
+ * The default model for photogrammetry software like COLMAP, Metashape and Capture Reality.
+ * Our implementation is found here: [Pinhole Part](https://github.com/darglein/saiga/blob/master/src/saiga/vision/cameraModel/Intrinsics4.h) and [Distortion Part](https://github.com/darglein/saiga/blob/master/src/saiga/vision/cameraModel/Distortion.h)
+
+#### Omnidirectional Camera Model
+
+ * A fisheye camera model extreme wide-angle angles.
+ * Our implementation is found here: [Model](https://github.com/darglein/saiga/blob/master/src/saiga/vision/cameraModel/OCam.h)
+
+#### Extending ADOP with other Camera Models
+
+ 1. Implement the camera model and its derivative. The derivative should be returned as the Jacobian matrix.
+ 2. Implement the forward and backward projection function [here](src/lib/rendering/PointRendererHelper.h).
+ 3. Add a new type [here](src/lib/data/SceneData.h), update the [rasterization code](src/lib/rendering/PointRenderer.cu) and the [wrapper code](src/lib/data/NeuralStructure.h).
 
 ## Supplementary Material
 

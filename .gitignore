@@ -1,0 +1,13 @@
+log/
+valgrind*
+cmake-build-*/
+perf*
+out.perf-folded
+.idea/
+checkpoints/
+imgui.ini
+build*/
+debug/
+config.ini
+pretrained/
+experiments/

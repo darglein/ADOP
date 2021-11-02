@@ -1,0 +1,26 @@
+﻿# Commented out parameters are those with the same value as base LLVM style
+# We can uncomment them if we want to change their value, or enforce the
+# chosen value in case the base style changes (last sync: Clang 6.0.1).
+---
+### General config, applies to all languages ###
+BasedOnStyle: Google
+IndentWidth: 4
+BreakBeforeBraces: Allman
+ColumnLimit: 120
+DerivePointerAlignment: false
+PointerAlignment: Left
+MaxEmptyLinesToKeep: 3
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^"(saiga)/'
+    Priority:        1
+  - Regex:           '^"(internal)/'
+    Priority:        2
+  - Regex:           '"[[:alnum:]./]+"'
+    Priority:        3
+  - Regex:           '<[[:alnum:]./]+>'
+    Priority:        4
+IndentPPDirectives: AfterHash
+AlignConsecutiveAssignments: true
+AllowShortFunctionsOnASingleLine: Inline
