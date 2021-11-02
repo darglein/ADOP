@@ -307,6 +307,7 @@ class NeuralTrainer
         torch::set_num_threads(1);
 
         std::string experiment_name = Saiga::CurrentTimeString("%F_%T") + "_" + params->train_params.name;
+        std::replace(s.begin(), s.end(), ':', '_'); // files with : forbiden in some linux distributives
         full_experiment_dir         = params->train_params.experiment_dir + "/" + experiment_name + "/";
         std::filesystem::create_directories(full_experiment_dir);
         console.setOutputFile(full_experiment_dir + "log.txt");
