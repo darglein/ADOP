@@ -67,11 +67,13 @@ SceneData::SceneData(std::string scene_path) : scene_path(scene_path)
     if (std::filesystem::exists(file_point_cloud_compressed))
     {
         point_cloud.LoadCompressed(file_point_cloud_compressed);
+        SAIGA_ASSERT(point_cloud.NumVertices() > 0);
     }
     else if (std::filesystem::exists(file_point_cloud))
     {
         std::cout << ">> Loading initial PLY point cloud and preprocessing it (done only once)" << std::endl;
         point_cloud = Saiga::UnifiedModel(file_point_cloud).mesh[0];
+        SAIGA_ASSERT(point_cloud.NumVertices() > 0);
 
         // some initial processing
         point_cloud.RemoveDoubles(0.0001);
@@ -122,7 +124,7 @@ SceneData::SceneData(std::string scene_path) : scene_path(scene_path)
     }
     else
     {
-         SAIGA_EXIT_ERROR("the pose file is required!");
+        SAIGA_EXIT_ERROR("the pose file is required!");
 
         // BinaryFile strm(scene_path + "/poses.dat", std::ios_base::in);
         // strm >> poses;
@@ -267,15 +269,10 @@ void SceneData::Save(bool extended_save)
         for (auto f : frames)
         {
             SE3 p = f.pose;
-
-            Quat q = p.unit_quaternion();
-            Vec3 t = p.translation();
-            strm2 << std::scientific << std::setprecision(15);
-            strm2 << q.x() << " " << q.y() << " " << q.z() << " " << q.w() << " " << t.x() << " " << t.y() << " "
-                  << t.z() << "\n";
-
             posesd.push_back(p);
         }
+
+        SavePoses(posesd, file_pose);
 
         if (extended_save)
         {
@@ -312,6 +309,19 @@ void SceneData::Save(bool extended_save)
 
 
     point_cloud.SaveCompressed(file_point_cloud_compressed);
+}
+
+void SceneData::SavePoses(std::vector<SE3> poses, std::string file)
+{
+    std::ofstream strm2(file, std::ios_base::out);
+    for (auto p : poses)
+    {
+        Quat q = p.unit_quaternion();
+        Vec3 t = p.translation();
+        strm2 << std::scientific << std::setprecision(15);
+        strm2 << q.x() << " " << q.y() << " " << q.z() << " " << q.w() << " " << t.x() << " " << t.y() << " " << t.z()
+              << "\n";
+    }
 }
 
 void SceneData::AddPointNoise(float sdev)

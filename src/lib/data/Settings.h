@@ -311,7 +311,7 @@ struct MyTrainParams : public TrainParams
     std::string experiment_dir           = "experiments/";
     std::string scene_base_dir           = "scenes/";
     std::string checkpoint_directory     = "default_checkpoint/";
-    std::vector<std::string> scene_names = {"church"};
+    std::vector<std::string> scene_names = {"boat"};
 
     // in epoch 1 the lr is x
     // in epoch <max_epoch> the lr is x / 10

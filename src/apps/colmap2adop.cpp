@@ -6,11 +6,12 @@
 
 #include "saiga/core/util/commandLineArguments.h"
 #include "saiga/core/util/exif/TinyEXIF.h"
+#include "saiga/core/util/file.h"
 #include "saiga/core/util/json11.hpp"
 #include "saiga/core/util/tinyxml2.h"
 #include "saiga/vision/cameraModel/OCam.h"
 #include "saiga/vision/util/ColmapReader.h"
-#include "saiga/core/util/file.h"
+
 #include "data/SceneData.h"
 
 
@@ -118,22 +119,32 @@ static std::shared_ptr<SceneData> ColmapScene(std::string sparse_dir, std::strin
         auto pc_in  = point_cloud_file;
         auto pc_out = output_scene_path + "/point_cloud.ply";
 
+        SAIGA_ASSERT(std::filesystem::exists(pc_in));
+        SAIGA_ASSERT(std::filesystem::is_regular_file(pc_in));
+
         std::string command = "cp -v -n " + pc_in + " " + pc_out;
-        auto res = system(command.c_str());
-        if(res!=0){
-            std::cout << "Copy failed!" << std::endl;
+        auto res            = system(command.c_str());
+        if (res != 0)
+        {
+            SAIGA_EXIT_ERROR("Copy failed!");
         }
     }
 
-    std::shared_ptr<SceneData> sd = std::make_shared<SceneData>(output_scene_path);
+    std::vector<SE3> poses;
+    for (int i = 0; i < reader.images.size(); ++i)
+    {
+        SE3 view(reader.images[i].q, reader.images[i].t);
+        poses.push_back(view.inverse());
+    }
+    SceneData::SavePoses(poses, output_scene_path + "/poses.txt");
 
+
+    std::shared_ptr<SceneData> sd = std::make_shared<SceneData>(output_scene_path);
     {
         SAIGA_ASSERT(sd->frames.size() == reader.images.size());
 
         for (int i = 0; i < reader.images.size(); ++i)
         {
-            SE3 view(reader.images[i].q, reader.images[i].t);
-            sd->frames[i].pose           = view.inverse();
             sd->frames[i].exposure_value = exposures[i];
         }
     }
