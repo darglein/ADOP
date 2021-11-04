@@ -78,6 +78,13 @@ SceneData::SceneData(std::string _scene_path)
         SAIGA_ASSERT(point_cloud.NumVertices() > 0);
         SAIGA_ASSERT(point_cloud.HasNormal());
 
+        auto box = point_cloud.BoundingBox();
+        std::cout << "Bounding Box: " << box << std::endl;
+
+        SAIGA_ASSERT(box.min.array().allFinite());
+        SAIGA_ASSERT(box.max.array().allFinite());
+        SAIGA_ASSERT(box.maxSize() < 1e20);
+
         // some initial processing
         point_cloud.RemoveDoubles(0.0001);
         RemoveLonelyPoints(5, 0.02);

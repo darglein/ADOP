@@ -40,7 +40,7 @@ std::vector<float> ExposureValuesFromImages(std::vector<std::string> files, std:
             SAIGA_ASSERT(info.ExposureBiasValue == 0);
         }
     }
-    
+
     std::cout << "EV Statistic:" << std::endl;
     Statistics stat(exposures);
     std::cout << stat << std::endl;
@@ -98,7 +98,7 @@ static std::shared_ptr<SceneData> ColmapScene(std::string sparse_dir, std::strin
     {
         std::filesystem::remove(output_scene_path + "/dataset.ini");
         SceneDatasetParams params;
-        params.file_model           = "/home/dari/Programming/saiga/data/models/bunny.obj";
+        params.file_model           = "";
         params.image_dir            = image_dir;
         params.camera_files         = camera_files;
         params.scene_exposure_value = Statistics(exposures).mean;
@@ -124,6 +124,9 @@ static std::shared_ptr<SceneData> ColmapScene(std::string sparse_dir, std::strin
     {
         auto pc_in  = point_cloud_file;
         auto pc_out = output_scene_path + "/point_cloud.ply";
+
+        std::filesystem::remove(pc_out);
+        std::filesystem::remove(output_scene_path + "/point_cloud.bin");
 
         SAIGA_ASSERT(std::filesystem::exists(pc_in));
         SAIGA_ASSERT(std::filesystem::is_regular_file(pc_in));
