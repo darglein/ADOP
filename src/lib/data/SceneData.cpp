@@ -30,14 +30,15 @@ std::pair<vec2, float> FrameData::Project3(vec3 wp) const
     return {ip, p(2)};
 }
 
-SceneData::SceneData(std::string scene_path) : scene_path(scene_path)
+SceneData::SceneData(std::string _scene_path)
 {
+    scene_path = std::filesystem::canonical(_scene_path).string();
     scene_name = std::filesystem::path(scene_path).filename();
     std::cout << "====================================" << std::endl;
     std::cout << "Scene Loaded" << std::endl;
     std::cout << "  Name       " << scene_name << std::endl;
     std::cout << "  Path       " << scene_path << std::endl;
-    SAIGA_ASSERT(std::filesystem::exists(scene_path));
+    SAIGA_ASSERT(!scene_name.empty());
 
     {
         std::string file_ini = scene_path + "/dataset.ini";

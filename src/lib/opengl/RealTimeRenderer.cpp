@@ -1,13 +1,14 @@
 ﻿/**
-* Copyright (c) 2021 Darius Rückert
-* Licensed under the MIT License.
-* See LICENSE file for more information.
+ * Copyright (c) 2021 Darius Rückert
+ * Licensed under the MIT License.
+ * See LICENSE file for more information.
  */
 
 
 #include "RealTimeRenderer.h"
-#include "saiga/opengl/imgui/imgui_opengl.h"
+
 #include "saiga/colorize.h"
+#include "saiga/opengl/imgui/imgui_opengl.h"
 
 RealTimeRenderer::Experiment::Experiment(std::string dir, std::string name, std::string scene_name, bool render_able)
     : dir(dir), name(name)
@@ -368,6 +369,8 @@ void RealTimeRenderer::imgui()
 }
 void RealTimeRenderer::Render(ImageInfo fd)
 {
+    if (!pipeline) return;
+
     std::vector<NeuralTrainData> batch(1);
     batch.front() = std::make_shared<TorchFrameData>();
 

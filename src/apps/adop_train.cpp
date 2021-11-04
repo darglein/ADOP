@@ -306,18 +306,13 @@ class NeuralTrainer
         lr_scheduler = LRSchedulerPlateau(params->train_params.lr_decay_factor, params->train_params.lr_decay_patience);
         torch::set_num_threads(1);
 
-        std::string experiment_name = Saiga::CurrentTimeString("%F_%T") + "_" + params->train_params.name;
+        std::string experiment_name = Saiga::CurrentTimeString("%F_%H-%M-%S") + "_" + params->train_params.name;
         full_experiment_dir         = params->train_params.experiment_dir + "/" + experiment_name + "/";
         std::filesystem::create_directories(full_experiment_dir);
         console.setOutputFile(full_experiment_dir + "log.txt");
         SAIGA_ASSERT(console.rdbuf());
         std::cout.rdbuf(console.rdbuf());
 
-        // Saiga::SaigaParameters saiga_params;
-        // saiga_params.fromConfigFile("configs/train_saiga_config.ini");
-        // Saiga::initSaiga(saiga_params);
-
-        std::cout << "train" << std::endl;
         train_scenes = std::make_shared<TrainScene>(params->train_params.scene_names);
 
         // Save all paramters into experiment output dir
@@ -599,6 +594,7 @@ int main(int argc, char* argv[])
 
 
     console << "Train Config: " << config_file << std::endl;
+    SAIGA_ASSERT(std::filesystem::exists(config_file));
 
 
     params = std::make_shared<CombinedParams>(config_file);
