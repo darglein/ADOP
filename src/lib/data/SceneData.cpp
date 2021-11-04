@@ -73,8 +73,10 @@ SceneData::SceneData(std::string _scene_path)
     else if (std::filesystem::exists(file_point_cloud))
     {
         std::cout << ">> Loading initial PLY point cloud and preprocessing it (done only once)" << std::endl;
+        std::cout << ">> This can take a while..." << std::endl;
         point_cloud = Saiga::UnifiedModel(file_point_cloud).mesh[0];
         SAIGA_ASSERT(point_cloud.NumVertices() > 0);
+        SAIGA_ASSERT(point_cloud.HasNormal());
 
         // some initial processing
         point_cloud.RemoveDoubles(0.0001);

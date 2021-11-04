@@ -27,17 +27,23 @@ std::vector<float> ExposureValuesFromImages(std::vector<std::string> files, std:
         TinyEXIF::EXIFInfo info;
         info.parseFrom((unsigned char*)data.data(), data.size());
 
-        double EV_log2 = log2((info.FNumber * info.FNumber) / info.ExposureTime) + log2(info.ISOSpeedRatings / 100.0);
-
-        exposures.push_back(EV_log2);
-
-        SAIGA_ASSERT(info.ExposureBiasValue == 0);
+        if (info.FNumber == 0 || info.ExposureTime == 0 || info.ISOSpeedRatings == 0)
+        {
+            std::cout << "No EXIF exposure value found for image " << f << std::endl;
+            exposures.push_back(0);
+        }
+        else
+        {
+            double EV_log2 =
+                log2((info.FNumber * info.FNumber) / info.ExposureTime) + log2(info.ISOSpeedRatings / 100.0);
+            exposures.push_back(EV_log2);
+            SAIGA_ASSERT(info.ExposureBiasValue == 0);
+        }
     }
-
-
+    
+    std::cout << "EV Statistic:" << std::endl;
     Statistics stat(exposures);
     std::cout << stat << std::endl;
-
     std::cout << "dynamic range: " << exp2(stat.max - stat.min) << std::endl;
 
     return exposures;
