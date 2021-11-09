@@ -28,13 +28,6 @@ void PreprocessPointcloud(std::string scene_dir, int dup_factor)
     UnifiedModel(scene->point_cloud).Save(scene_dir + "/point_cloud_dup.ply");
 }
 
-
-// The tanks and temples scenes were preprocessed with the following settings:
-//    DuplicatePreprocess("tt_playground", 2);
-//    DuplicatePreprocess("tt_lighthouse", 4);
-//    DuplicatePreprocess("tt_m60", 2);
-//    DuplicatePreprocess("tt_train", 3);
-
 int main(int argc, char* argv[])
 {
     CLI::App app{"Point Cloud Preprocessor", "preprocess_pointcloud"};

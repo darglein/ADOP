@@ -12,11 +12,17 @@ Supported Compiler
 Required Software
  * Anaconda
 
+Basic Setup
 ```shell
 git clone git@github.com:darglein/ADOP.git
 cd ADOP
 git submodule update --init --recursive --jobs 0
 ```
+
+If you want the `adop_viewer` to work:
+```shell
+sudo apt install xorg-dev
+```****
 
 ### 2. Setup Environment
  

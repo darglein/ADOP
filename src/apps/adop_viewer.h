@@ -23,7 +23,6 @@
 #include "opengl/RealTimeRenderer.h"
 #include "opengl/SceneViewer.h"
 
-
 #include "viewer_base.h"
 using namespace Saiga;
 
@@ -56,7 +55,6 @@ class ADOPViewer : public StandaloneWindow<wm, DeferredRenderer>,
 
 
         scene->scene_camera.update(dt);
-
     }
 
     void interpolate(float dt, float interpolation) override
@@ -113,12 +111,12 @@ class ADOPViewer : public StandaloneWindow<wm, DeferredRenderer>,
             }
         }
     }
+    float render_scale = 1.f;
 
    private:
     std::shared_ptr<LineVertexColoredAsset> spline_mesh;
     SplinePath camera_spline;
 
-    float render_scale = 1;
     ViewMode view_mode;
     std::shared_ptr<DirectionalLight> sun;
     TextureDisplay display;

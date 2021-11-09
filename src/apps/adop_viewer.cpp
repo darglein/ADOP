@@ -102,6 +102,9 @@ void ADOPViewer::render(RenderInfo render_info)
         if (view_mode == ViewMode::NEURAL)
         {
             auto fd           = scene->CurrentFrameData();
+            fd.w              = fd.w * render_scale;
+            fd.h              = fd.h * render_scale;
+            fd.K              = fd.K.scale(render_scale);
             fd.exposure_value = renderer->tone_mapper.params.exposure_value;
             fd.white_balance  = renderer->tone_mapper.params.white_point;
 
@@ -201,11 +204,8 @@ void ADOPViewer::render(RenderInfo render_info)
 
         auto fd = scene->CurrentFrameData();
 
-        fd.w = fd.w * render_scale;
-        fd.h = fd.h * render_scale;
-        // fd.w = iAlignUp(fd.w, 32);
-        // fd.h = iAlignUp(fd.h, 32);
-
+        fd.w              = fd.w * render_scale;
+        fd.h              = fd.h * render_scale;
         fd.K              = fd.K.scale(render_scale);
         fd.exposure_value = renderer->tone_mapper.params.exposure_value;
         fd.white_balance  = renderer->tone_mapper.params.white_point;
@@ -594,9 +594,11 @@ void ADOPViewer::Recording(ImageInfo& fd)
 
 int main(int argc, char* argv[])
 {
+    float render_scale = 1.0f;
     std::string scene_dir;
     CLI::App app{"ADOP Viewer for Scenes", "adop_viewer"};
     app.add_option("--scene_dir", scene_dir)->required();
+    app.add_option("--render_scale", render_scale);
     CLI11_PARSE(app, argc, argv);
 
 
@@ -615,5 +617,6 @@ int main(int argc, char* argv[])
 
     MainLoopParameters mlp;
     ADOPViewer viewer(scene_dir, std::move(renderer), std::move(window));
+    viewer.render_scale = render_scale;
     viewer.run(mlp);
 }
