@@ -22,7 +22,7 @@ build/bin/colmap2adop --sparse_dir SCENE_BASE/sparse/0/ \
 ### render_scale
 
 The `render_scale` (see command above) dictates how large the rendered image is relative to the ground truth images.
-For example, if the input images are 4000x3000 and the render_scale is 0.5 then the `adop_viwer` will render the images in 2000x1500.
+For example, if the input images are 4000x3000 and the render_scale is 0.5 then the `adop_viewer` will render the images in 2000x1500.
 This of course impacts efficiency and memory consumption.
 
 The `render_scale` can also be updated manually by modifying the `dataset.ini` in the corresponding scene folder.
