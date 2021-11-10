@@ -23,6 +23,7 @@ else
     exit
 fi
 
+unset CUDA_HOME
 
 mkdir build
 cd build
