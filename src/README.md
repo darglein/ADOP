@@ -22,7 +22,7 @@ git submodule update --init --recursive --jobs 0
 If you want the `adop_viewer` to work:
 ```shell
 sudo apt install xorg-dev
-```****
+```
 
 ### 2. Setup Environment
  
