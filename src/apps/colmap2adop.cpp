@@ -22,6 +22,10 @@ std::vector<float> ExposureValuesFromImages(std::vector<std::string> files, std:
     for (auto f : files)
     {
         auto path = image_dir + "/" + f;
+        if (!std::filesystem::exists(path))
+        {
+            SAIGA_EXIT_ERROR("Could not find image file " + path);
+        }
 
         auto data = File::loadFileBinary(path);
         TinyEXIF::EXIFInfo info;
