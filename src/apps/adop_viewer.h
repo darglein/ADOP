@@ -122,4 +122,7 @@ class ADOPViewer : public StandaloneWindow<wm, DeferredRenderer>,
     TextureDisplay display;
 
     std::unique_ptr<Framebuffer> target_framebuffer;
+
+    // video recording variables
+    std::string recording_dir;
 };

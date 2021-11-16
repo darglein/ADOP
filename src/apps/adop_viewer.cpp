@@ -9,9 +9,6 @@
 #include "saiga/core/util/commandLineArguments.h"
 #include "saiga/core/util/exif/TinyEXIF.h"
 
-#ifdef SAIGA_USE_FFMPEG
-#    include "saiga/opengl/ffmpeg/ffmpegEncoder.h"
-#endif
 
 ADOPViewer::ADOPViewer(std::string scene_dir, std::unique_ptr<DeferredRenderer> renderer_,
                        std::unique_ptr<WindowType> window_)
@@ -33,7 +30,10 @@ ADOPViewer::ADOPViewer(std::string scene_dir, std::unique_ptr<DeferredRenderer> 
     std::cout << "Loading Scene " << scene_dir << std::endl;
     LoadScene(scene_dir);
     LoadSceneImpl();
-    view_mode = ViewMode::SPLIT_NEURAL;
+
+    std::filesystem::create_directories("videos/");
+    recording_dir = "videos/" + scene->scene->scene_name + "/";
+    view_mode     = ViewMode::SPLIT_NEURAL;
 }
 
 
@@ -183,7 +183,13 @@ void ADOPViewer::render(RenderInfo render_info)
 
     if (render_info.render_pass == RenderPass::GUI)
     {
+        if (ImGui::Begin("Video Recording"))
+        {
+        }
+        ImGui::End();
         ViewerBase::imgui();
+
+
         ImGui::Begin("Model Viewer");
 
         ImGui::SliderFloat("render_scale", &render_scale, 0.1, 2);
@@ -236,21 +242,20 @@ void ADOPViewer::render(RenderInfo render_info)
 
 void ADOPViewer::Recording(ImageInfo& fd)
 {
-#ifdef SAIGA_USE_FFMPEG
-    std::string out_dir = "debug/videos/" + scene->scene->scene_name + "/";
+    std::string out_dir = recording_dir;
 
     static bool is_recording = false;
     static bool downscale_gt = false;
 
     static bool interpolate_exposure = false;
 
-    static std::shared_ptr<FFMPEGEncoder> encoder_neural, encoder_points, encoder_gt;
-
-    static bool render_tmp = false;
-    static std::vector<std::shared_ptr<FFMPEGEncoder>> encoder_neural_tmp(4);
-
-    ImGui::Checkbox("render_tmp", &render_tmp);
-
+    static bool record_debug  = true;
+    static bool record_gt     = true;
+    static bool record_neural = true;
+    ImGui::Checkbox("record_debug", &record_debug);
+    ImGui::Checkbox("record_gt", &record_gt);
+    ImGui::Checkbox("record_neural", &record_neural);
+    ImGui::Checkbox("downscale_gt", &downscale_gt);
 
 
     static std::vector<SplineKeyframe> traj;
@@ -271,36 +276,20 @@ void ADOPViewer::Recording(ImageInfo& fd)
 
     if (is_recording)
     {
-        int bitrate = 1000000 / 2;
+        std::string frame_name = std::to_string(current_frame) + ".png";
 
-
-        if (1)
+        if (record_neural)
         {
             auto frame = neural_renderer->DownloadRender();
-
-            if (!encoder_neural)
-            {
-                encoder_neural = std::make_shared<FFMPEGEncoder>(
-                    out_dir + "/" + scene->scene->scene_name + "_neural.mp4", frame.w, frame.h, frame.w, frame.h,
-                    camera_spline.frame_rate, bitrate, AV_CODEC_ID_H264);
-                encoder_neural->startEncoding();
-            }
-            encoder_neural->addFrame(frame);
+            frame.save(out_dir + "/neural/" + frame_name);
         }
+        if (record_debug)
         {
             auto frame = neural_renderer->DownloadColor();
-            if (!encoder_points)
-            {
-                encoder_points = std::make_shared<FFMPEGEncoder>(
-                    out_dir + "/" + scene->scene->scene_name + "_points.mp4", frame.w, frame.h, frame.w, frame.h,
-                    camera_spline.frame_rate, bitrate, AV_CODEC_ID_H264);
-                encoder_points->startEncoding();
-            }
-            // frame.save("debug/videos/points/" + std::to_string(current_frame) + ".png");
-            encoder_points->addFrame(frame);
+            frame.save(out_dir + "/debug/" + frame_name);
         }
 
-        if (1)
+        if (record_gt)
         {
             TemplatedImage<ucvec4> frame = neural_renderer->DownloadGt();
 
@@ -310,41 +299,7 @@ void ADOPViewer::Recording(ImageInfo& fd)
                 frame.getImageView().copyScaleDownPow2(gt_small.getImageView(), 2);
                 frame = gt_small;
             }
-            if (!encoder_gt)
-            {
-                encoder_gt = std::make_shared<FFMPEGEncoder>(out_dir + "/" + scene->scene->scene_name + "_gt.mp4",
-                                                             frame.w, frame.h, frame.w, frame.h,
-                                                             camera_spline.frame_rate, bitrate, AV_CODEC_ID_H264);
-                encoder_gt->startEncoding();
-            }
-            encoder_gt->addFrame(frame);
-            //                    encoder_points->addFrame(frame);
-        }
-
-        if (render_tmp)
-        {
-            for (int i = 0; i < 4; ++i)
-            {
-                neural_renderer->color_layer = i + 1;
-                neural_renderer->color_scale = 9;
-                neural_renderer->RenderColor(fd, 1);
-
-
-                auto& enc = encoder_neural_tmp[i];
-
-                auto frame = neural_renderer->DownloadColor();
-                //                    frame.save("debug/videos/gt/" + std::to_string(current_frame) + ".png");
-                if (!enc)
-                {
-                    enc = std::make_shared<FFMPEGEncoder>(out_dir + "/layer_" + std::to_string(i) + ".mp4", frame.w,
-                                                          frame.h, frame.w, frame.h, camera_spline.frame_rate, bitrate,
-                                                          AV_CODEC_ID_H265);
-                    enc->startEncoding();
-                }
-                enc->addFrame(frame);
-            }
-            neural_renderer->color_layer = 1;
-            neural_renderer->color_scale = 1;
+            frame.save(out_dir + "/gt/" + frame_name);
         }
 
         current_frame++;
@@ -352,24 +307,6 @@ void ADOPViewer::Recording(ImageInfo& fd)
 
         if (current_frame == traj.size() || ImGui::Button("stop recording"))
         {
-            encoder_neural->finishEncoding();
-            encoder_neural = nullptr;
-
-            encoder_points->finishEncoding();
-            encoder_points = nullptr;
-
-            encoder_gt->finishEncoding();
-            encoder_gt = nullptr;
-
-            for (auto& enc : encoder_neural_tmp)
-            {
-                if (enc)
-                {
-                    enc->finishEncoding();
-                    enc = nullptr;
-                }
-            }
-
             is_recording = false;
         }
     }
@@ -511,8 +448,11 @@ void ADOPViewer::Recording(ImageInfo& fd)
 
     if (ImGui::Button("add yellow frame"))
     {
-        insert(scene->selected_capture);
-        update_curve = true;
+        if (scene->selected_capture >= 0)
+        {
+            insert(scene->selected_capture);
+            update_curve = true;
+        }
     }
     ImGui::SameLine();
     if (ImGui::Button("remove yellow frame"))
@@ -533,6 +473,14 @@ void ADOPViewer::Recording(ImageInfo& fd)
         }
     }
 
+    if (ImGui::Button("add gl camera"))
+    {
+        SplineKeyframe kf;
+        kf.user_index = 0;
+        kf.pose       = Sophus::SE3f::fitToSE3(scene->scene_camera.model * GL2CVView()).cast<double>();
+        camera_spline.Insert(kf);
+        update_curve = true;
+    }
 
     if (update_curve)
     {
@@ -561,6 +509,21 @@ void ADOPViewer::Recording(ImageInfo& fd)
         traj                             = camera_spline.Trajectory();
         current_frame                    = 0;
         std::filesystem::create_directories(out_dir);
+        if (record_debug)
+        {
+            std::filesystem::remove_all(out_dir + "/debug");
+            std::filesystem::create_directories(out_dir + "/debug");
+        }
+        if (record_gt)
+        {
+            std::filesystem::remove_all(out_dir + "/gt");
+            std::filesystem::create_directories(out_dir + "/gt");
+        }
+        if (record_neural)
+        {
+            std::filesystem::remove_all(out_dir + "/neural");
+            std::filesystem::create_directories(out_dir + "/neural");
+        }
     }
 
     if (is_recording && !traj.empty())
@@ -589,7 +552,6 @@ void ADOPViewer::Recording(ImageInfo& fd)
         ::camera->setModelMatrix(model);
         ::camera->updateFromModel();
     }
-#endif
 }
 
 int main(int argc, char* argv[])

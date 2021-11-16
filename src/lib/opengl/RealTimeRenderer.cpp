@@ -338,7 +338,7 @@ void RealTimeRenderer::imgui()
             }
 
 
-            if (ImGui::Button("save color"))
+            if (ImGui::Button("save debug"))
             {
                 TemplatedImage<ucvec4> tmp(output_color->getHeight(), output_color->getWidth());
 
@@ -347,7 +347,7 @@ void RealTimeRenderer::imgui()
                 assert_no_glerror();
                 output_color->unbind();
 
-                tmp.save("out_color_" + std::to_string(color_layer) + ".png");
+                tmp.save("out_debug_" + std::to_string(color_layer) + ".png");
             }
 
             if (ImGui::Button("morton shuffle"))
