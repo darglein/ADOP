@@ -25,6 +25,7 @@ NeuralScene::NeuralScene(std::shared_ptr<SceneData> scene, std::shared_ptr<Combi
     // ========== Create Modules ==========
 
     point_cloud_cuda = NeuralPointCloudCuda(scene->point_cloud);
+    SAIGA_ASSERT(point_cloud_cuda->t_normal.defined() || !params->render_params.check_normal);
 
 
     std::vector<float> exposures;

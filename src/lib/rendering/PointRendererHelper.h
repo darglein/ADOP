@@ -50,18 +50,21 @@ HD inline thrust::pair<vec2, float> ProjectPointPinhole(vec3 p, vec3 n, Sophus::
                                                         Distortionf distortion, bool check_normal, float dist_cutoff)
 {
     vec3 world_p = vec3(p(0), p(1), p(2));
-    vec3 world_n = vec3(n(0), n(1), n(2));
 
-    CUDA_KERNEL_ASSERT(isfinite(n(0)) & isfinite(n(1)) & isfinite(n(2)));
 
     vec3 view_p = TransformPoint<float>(V, world_p);
     float z     = view_p.z();
     z           = fmax(z, 0);
 
-    vec3 view_n = V.so3() * world_n;
-    if (check_normal & dot(view_p, view_n) > 0)
+    if (check_normal)
     {
-        z = 0;
+        CUDA_KERNEL_ASSERT(isfinite(n(0)) & isfinite(n(1)) & isfinite(n(2)));
+        vec3 world_n = vec3(n(0), n(1), n(2));
+        vec3 view_n  = V.so3() * world_n;
+        if (dot(view_p, view_n) > 0)
+        {
+            z = 0;
+        }
     }
 
     vec2 norm_p = DivideByZ<float>(view_p);
@@ -121,10 +124,8 @@ HD inline BackwardOutputPinhole ProjectPointPinholeBackward(vec3 p, vec3 n, vec2
 {
     using T = float;
 
-    CUDA_KERNEL_ASSERT(isfinite(n(0)) & isfinite(n(1)) & isfinite(n(2)));
 
     vec3 world_p = vec3(p(0), p(1), p(2));
-    vec3 world_n = vec3(n(0), n(1), n(2));
 
     Matrix<T, 3, 3> J_point;
     Matrix<T, 3, 6> J_pose;
@@ -133,14 +134,14 @@ HD inline BackwardOutputPinhole ProjectPointPinholeBackward(vec3 p, vec3 n, vec2
     CUDA_KERNEL_ASSERT(z > 0);
     if (z <= 0) return {};
 
-    vec3 view_n = V.so3() * world_n;
-
-    if (!isfinite(n(0)) || (check_normal && dot(view_p, view_n) > 0))
+    if(check_normal)
     {
-        printf("invalid normal %f %f %f \n", n(0), n(1), n(2));
+        CUDA_KERNEL_ASSERT(isfinite(n(0)) & isfinite(n(1)) & isfinite(n(2)));
+        vec3 world_n = vec3(n(0), n(1), n(2));
+        vec3 view_n = V.so3() * world_n;
+        CUDA_KERNEL_ASSERT(dot(view_p, view_n) <= 0);
+        if (dot(view_p, view_n) > 0) return {};
     }
-    CUDA_KERNEL_ASSERT(!check_normal || dot(view_p, view_n) <= 0);
-    if (check_normal && dot(view_p, view_n) > 0) return {};
 
     Matrix<T, 2, 3> J_p_div;
     vec2 norm_p = DivideByZ<float>(view_p, &J_p_div);

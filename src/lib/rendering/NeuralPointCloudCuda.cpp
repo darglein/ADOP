@@ -11,7 +11,6 @@
 NeuralPointCloudCudaImpl::NeuralPointCloudCudaImpl(const UnifiedMesh& model) : NeuralPointCloud(model)
 {
     std::vector<vec4> data_position;
-    std::vector<vec4> data_normal;
     std::vector<int> data_normal_compressed;
 
     std::vector<int> indices;
@@ -25,14 +24,15 @@ NeuralPointCloudCudaImpl::NeuralPointCloudCudaImpl(const UnifiedMesh& model) : N
             drop_out_radius = data[i](3);
         }
 
-        vec3 n = normal[i].head<3>();
-        SAIGA_ASSERT(n.allFinite());
-        auto n_enc = PackNormal10Bit(n);
-
-        data_normal_compressed.push_back(n_enc);
+        if (normal.size() == points.size())
+        {
+            vec3 n = normal[i].head<3>();
+            SAIGA_ASSERT(n.allFinite());
+            auto n_enc = PackNormal10Bit(n);
+            data_normal_compressed.push_back(n_enc);
+        }
 
         data_position.push_back(make_vec4(points[i].position, drop_out_radius));
-        data_normal.push_back(normal[i]);
     }
 
     t_position = torch::from_blob(data_position.data(), {(long)data_position.size(), 4},
@@ -41,27 +41,15 @@ NeuralPointCloudCudaImpl::NeuralPointCloudCudaImpl(const UnifiedMesh& model) : N
                      .cuda()
                      .clone();
 
-    //    t_normal = torch::from_blob(data_normal_compressed.data(), {(long)data_normal_compressed.size(), 2},
-    //                                torch::TensorOptions().dtype(torch::kFloat32))
-    //                   .contiguous()
-    //                   .cuda()
-    //                   .clone();
-
-    t_normal = torch::from_blob(data_normal_compressed.data(), {(long)data_normal_compressed.size(), 1},
-                                torch::TensorOptions().dtype(torch::kInt32))
-                   .contiguous()
-                   .cuda()
-                   .clone();
-
-    //    t_normal_test = torch::from_blob(data_normal.data(), {(long)data_normal.size(), 4},
-    //                                     torch::TensorOptions().dtype(torch::kFloat32))
-    //                        .contiguous()
-    //                        .cuda()
-    //                        .clone();
-
-    //    PrintTensorInfo(t_normal);
-    // t_normal = t_normal.to(torch::kFloat16);
-    //    PrintTensorInfo(t_normal);
+    if (!data_normal_compressed.empty())
+    {
+        t_normal = torch::from_blob(data_normal_compressed.data(), {(long)data_normal_compressed.size(), 1},
+                                    torch::TensorOptions().dtype(torch::kInt32))
+                       .contiguous()
+                       .cuda()
+                       .clone();
+        register_buffer("t_normal", t_normal);
+    }
 
     t_index = torch::from_blob(indices.data(), {(long)indices.size(), 1}, torch::TensorOptions().dtype(torch::kInt32))
                   .contiguous()
@@ -70,15 +58,13 @@ NeuralPointCloudCudaImpl::NeuralPointCloudCudaImpl(const UnifiedMesh& model) : N
 
 
     register_parameter("t_position", t_position);
-    register_buffer("t_normal", t_normal);
-    // register_buffer("t_normal_test", t_normal_test);
     register_buffer("t_index", t_index);
 
     SAIGA_ASSERT(t_position.isfinite().all().item().toBool());
-    // SAIGA_ASSERT(t_normal.isfinite().all().item().toBool());
 
-    std::cout << "GPU memory - Point Cloud: "
-              << (t_position.nbytes() + t_normal.nbytes() + t_index.nbytes()) / 1000000.0 << "MB" << std::endl;
+    size_t total_mem = t_position.nbytes() + t_index.nbytes();
+    if (t_normal.defined()) total_mem += t_normal.nbytes();
+    std::cout << "GPU memory - Point Cloud: " << total_mem / 1000000.0 << "MB" << std::endl;
 }
 Saiga::UnifiedMesh NeuralPointCloudCudaImpl::Mesh()
 {

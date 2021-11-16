@@ -63,43 +63,39 @@ struct DevicePointCloud
 
     DevicePointCloud(NeuralPointCloudCuda pc)
     {
-        SAIGA_ASSERT(pc->t_position.size(0) == pc->t_normal.size(0));
         SAIGA_ASSERT(pc->t_position.size(0) == pc->t_index.size(0));
         SAIGA_ASSERT(pc->t_position.size(0) == pc->Size());
 
         position = (int4*)pc->t_position.data_ptr<float>();
-        // normal   = (half2*)pc->t_normal.data_ptr<torch::Half>();
-        normal = pc->t_normal.data_ptr<int>();
-        // normal_test = (int4*)pc->t_normal_test.data_ptr<float>();
+        if (pc->t_normal.defined())
+        {
+            SAIGA_ASSERT(pc->t_position.size(0) == pc->t_normal.size(0));
+            normal = pc->t_normal.data_ptr<int>();
+        }
+        else
+        {
+            normal = nullptr;
+        }
         index = (int*)pc->t_index.data_ptr();
-
-        n = pc->Size();
+        n     = pc->Size();
     }
     HD inline thrust::tuple<vec3, vec3, float> GetPoint(int point_index)
     {
         vec4 p;
         vec4 n_test;
 
-
-
         // float4 global memory loads are vectorized!
         reinterpret_cast<int4*>(&p)[0] = position[point_index];
-        // reinterpret_cast<int4*>(&n_test)[0] = normal_test[point_index];
-
-        // half2 n_half = normal[point_index];
-        // vec2 enc(n_half.x, n_half.y);
-
-        auto enc = normal[point_index];
-
-        vec3 n = UnpackNormal10Bit(enc);
 
 
+        vec3 n;
 
-        // if (point_index % 100000 == 0)
-        // {
-        //     printf("normal check: %d | %f %f %f | %f %f %f\n", point_index, n(0), n(1), n(2), n_test(0), n_test(1),
-        //            n_test(2));
-        // }
+        if(normal)
+        {
+            auto enc = normal[point_index];
+            n        = UnpackNormal10Bit(enc);
+        }
+
 
         float drop_out_radius = p(3);
 

@@ -76,7 +76,12 @@ SceneData::SceneData(std::string _scene_path)
         std::cout << ">> This can take a while..." << std::endl;
         point_cloud = Saiga::UnifiedModel(file_point_cloud).mesh[0];
         SAIGA_ASSERT(point_cloud.NumVertices() > 0);
-        SAIGA_ASSERT(point_cloud.HasNormal());
+
+        if (!point_cloud.HasColor())
+        {
+            std::cout << "No Point Color found... Setting to white!" << std::endl;
+            point_cloud.SetVertexColor(vec4(1, 1, 1, 1));
+        }
 
         auto box = point_cloud.BoundingBox();
         std::cout << "Bounding Box: " << box << std::endl;
@@ -112,7 +117,8 @@ SceneData::SceneData(std::string _scene_path)
 
 
     std::cout << "  Points     " << point_cloud.NumVertices() << std::endl;
-    std::cout << "  Colors     " << point_cloud.color.size() << std::endl;
+    std::cout << "  Colors     " << point_cloud.HasColor() << std::endl;
+    std::cout << "  Normals    " << point_cloud.HasNormal() << std::endl;
 
     std::vector<Sophus::SE3d> poses;
     if (std::filesystem::exists(file_pose))
@@ -472,6 +478,8 @@ void SceneData::ComputeRadius(int n)
 }
 void SceneData::DuplicatePoints(int factor, float dis = 0.5)
 {
+    SAIGA_ASSERT(point_cloud.HasNormal());
+    SAIGA_ASSERT(point_cloud.HasColor());
     ScopedTimerPrintLine tim("DuplicatePoints");
     int N = point_cloud.NumVertices();
     KDTree<3, vec3> tree(point_cloud.position);

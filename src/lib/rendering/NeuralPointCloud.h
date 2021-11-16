@@ -24,10 +24,6 @@ class NeuralPointCloud : public Saiga::Object3D
    public:
     NeuralPointCloud(const Saiga::UnifiedMesh& model)
     {
-        SAIGA_ASSERT(model.NumVertices() == model.normal.size());
-        SAIGA_ASSERT(model.NumVertices() == model.color.size());
-        // SAIGA_ASSERT(model.NumVertices() == model.data.size());
-
         for (int i = 0; i < model.NumVertices(); ++i)
         {
             PositionIndex npv;
@@ -35,8 +31,14 @@ class NeuralPointCloud : public Saiga::Object3D
             npv.index = i;
             points.push_back(npv);
 
-            normal.push_back(make_vec4(model.normal[i].normalized(), 0));
-            color.push_back(model.color[i]);
+            if(model.NumVertices() == model.normal.size())
+            {
+                normal.push_back(make_vec4(model.normal[i].normalized(), 0));
+            }
+            if(model.NumVertices() == model.color.size())
+            {
+                color.push_back(model.color[i]);
+            }
 
             if (model.NumVertices() == model.data.size())
             {

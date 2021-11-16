@@ -29,11 +29,18 @@ NeuralPointCloudOpenGL::NeuralPointCloudOpenGL(const UnifiedMesh& model) : Neura
     gl_points.setDrawMode(GL_POINTS);
     gl_points.set(points, GL_STATIC_DRAW);
 
-    gl_normal.create(normal, GL_STATIC_DRAW);
-    gl_color.create(color, GL_STATIC_DRAW);
+    if(color.size() == points.size())
+    {
+        gl_color.create(color, GL_STATIC_DRAW);
+        gl_points.addExternalBuffer(gl_color, 1, 4, GL_FLOAT, GL_FALSE, sizeof(vec4), 0);
+    }
 
-    gl_points.addExternalBuffer(gl_color, 1, 4, GL_FLOAT, GL_FALSE, sizeof(vec4), 0);
-    gl_points.addExternalBuffer(gl_normal, 3, 4, GL_FLOAT, GL_FALSE, sizeof(vec4), 0);
+
+    if(normal.size() == points.size())
+    {
+        gl_normal.create(normal, GL_STATIC_DRAW);
+        gl_points.addExternalBuffer(gl_normal, 3, 4, GL_FLOAT, GL_FALSE, sizeof(vec4), 0);
+    }
 
     if (data.size() == points.size())
     {
