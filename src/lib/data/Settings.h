@@ -246,8 +246,6 @@ struct MyTrainParams : public TrainParams
         SAIGA_PARAM(experiment_dir);
         SAIGA_PARAM(scene_base_dir);
         SAIGA_PARAM_LIST(scene_names, ',');
-        SAIGA_PARAM(checkpoint_directory);
-
 
         SAIGA_PARAM(loss_vgg);
         SAIGA_PARAM(loss_l1);
@@ -310,7 +308,6 @@ struct MyTrainParams : public TrainParams
 
     std::string experiment_dir           = "experiments/";
     std::string scene_base_dir           = "scenes/";
-    std::string checkpoint_directory     = "default_checkpoint/";
     std::vector<std::string> scene_names = {"boat"};
 
     // in epoch 1 the lr is x
