@@ -8,6 +8,7 @@
 #include "saiga/core/geometry/cameraAnimation.h"
 #include "saiga/core/util/commandLineArguments.h"
 #include "saiga/core/util/exif/TinyEXIF.h"
+#include "git_sha1.h"
 
 
 ADOPViewer::ADOPViewer(std::string scene_dir, std::unique_ptr<DeferredRenderer> renderer_,
@@ -556,6 +557,8 @@ void ADOPViewer::Recording(ImageInfo& fd)
 
 int main(int argc, char* argv[])
 {
+    std::cout << "Git ref: " << GIT_SHA1 << std::endl;
+
     float render_scale = 1.0f;
     std::string scene_dir;
     CLI::App app{"ADOP Viewer for Scenes", "adop_viewer"};

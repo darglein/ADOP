@@ -82,7 +82,7 @@ void RealTimeRenderer::Forward(Camera* cam, ImageInfo fd)
     mouse_on_view = false;
     if (ImGui::Begin("Neural View"))
     {
-        ImGui::BeginChild("gt_child", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
+        ImGui::BeginChild("neural_child", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
         mouse_on_view |= ImGui::IsWindowHovered();
 
 
@@ -103,7 +103,7 @@ void RealTimeRenderer::Forward(Camera* cam, ImageInfo fd)
 
     if (ImGui::Begin("Debug View"))
     {
-        ImGui::BeginChild("gt_child", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
+        ImGui::BeginChild("dbg_child", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
         mouse_on_view |= ImGui::IsWindowHovered();
         if (render_color)
         {
@@ -369,6 +369,7 @@ void RealTimeRenderer::imgui()
 }
 void RealTimeRenderer::Render(ImageInfo fd)
 {
+    SAIGA_ASSERT(pipeline);
     if (!pipeline) return;
 
     std::vector<NeuralTrainData> batch(1);
@@ -579,6 +580,8 @@ void RealTimeRenderer::RenderColor(ImageInfo fd, int flags)
 
         color_interop = std::make_shared<Saiga::CUDA::Interop>();
         color_interop->initImage(output_color->getId(), output_color->getTarget());
+
+        std::cout << "Setting Debug Output Size to " << x.size(1) << "x" << x.size(0) << std::endl;
     }
 
     color_interop->mapImage();
