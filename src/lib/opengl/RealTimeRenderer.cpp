@@ -406,6 +406,8 @@ void RealTimeRenderer::Render(ImageInfo fd)
 
         texure_interop = std::make_shared<Saiga::CUDA::Interop>();
         texure_interop->initImage(output_texture->getId(), output_texture->getTarget());
+
+        std::cout << "Setting Neural Render Size to " << fd.w << "x" << fd.h << std::endl;
     }
 
     batch.front()->uv = use_center_tensor ? uv_tensor_center : uv_tensor;

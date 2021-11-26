@@ -389,23 +389,8 @@ void NeuralScene::OptimizerStep(int epoch_id, bool structure_only)
 {
     if (!structure_only && texture_optimizer)
     {
-        if (params->train_params.debug)
-        {
-            std::cout << std::endl;
-            std::cout << std::endl;
-            std::cout << "opt" << std::endl;
-            PrintTensorInfo(texture->texture);
-            PrintTensorInfo(texture->texture.grad());
-            SAIGA_ASSERT(texture->texture.grad().isfinite().all().item().toBool());
-        }
-
         texture_optimizer->step();
         texture_optimizer->zero_grad();
-        if (params->train_params.debug)
-        {
-            PrintTensorInfo(texture->texture.grad());
-            std::cout << std::endl;
-        }
     }
 
     if (epoch_id > params->train_params.lock_camera_params_epochs)

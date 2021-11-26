@@ -5,6 +5,7 @@
  */
 
 #include "saiga/core/time/time.h"
+#include "saiga/core/util/MemoryUsage.h"
 #include "saiga/core/util/ProgressBar.h"
 #include "saiga/core/util/commandLineArguments.h"
 #include "saiga/core/util/file.h"
@@ -118,13 +119,6 @@ class TrainScene
                                                         ".png");
                 scene_data.eval_crop_mask = (mask);
             }
-
-            std::vector<Sophus::SE3d> poses;
-            for (auto& f : scene->frames)
-            {
-                poses.push_back(f.pose);
-            }
-            scene_data.old_poses = poses;
 
             scene->AddIntrinsicsNoise(params->train_params.noise_intr_k, params->train_params.noise_intr_d);
 
@@ -272,11 +266,10 @@ class TrainScene
     struct PerSceneData
     {
         std::shared_ptr<NeuralScene> scene;
-        std::vector<Sophus::SE3d> old_poses;
         torch::Tensor eval_crop_mask;
 
         // all image indices that are not used during training.
-        // -> we interpolate the meta data for them
+        // -> we interpolate the metadata for them
         std::vector<int> not_training_indices;
 
         LossResult epoch_loss;
@@ -375,6 +368,10 @@ class NeuralTrainer
                     }
                 }
 
+                if(params->train_params.debug)
+                {
+                    std::cout << GetMemoryInfo() << std::endl;
+                }
                 pipeline->Log(full_experiment_dir);
                 for (auto& s : train_scenes->data)
                 {
@@ -414,6 +411,7 @@ class NeuralTrainer
             }
         }
     }
+
 
 
     double TrainEpoch(int epoch_id, std::vector<SceneDataTrainSampler>& data, bool structure_only)
