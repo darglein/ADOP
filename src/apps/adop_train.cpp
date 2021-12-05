@@ -11,7 +11,7 @@
 #include "saiga/core/util/file.h"
 #include "saiga/vision/torch/ImageTensor.h"
 #include "saiga/vision/torch/LRScheduler.h"
-
+#include "saiga/cuda/CudaInfo.h"
 #include "data/Dataset.h"
 #include "models/Pipeline.h"
 
@@ -616,6 +616,8 @@ int main(int argc, char* argv[])
     {
         NeuralTrainer trainer;
     }
+
+    CHECK_CUDA_ERROR(cudaDeviceReset());
 
     return 0;
 }

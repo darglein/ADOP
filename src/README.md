@@ -81,6 +81,6 @@ conda install -y -c schrodinger openvr
 
 ### Troubleshooting
 
-`libNVxxxx.so` not found when launching an executable
- * Add the `lib/` directory of the conda environment to `LD_LIBRARY_PATH`
- * Example: `export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:~/anaconda3/envs/adop/lib`
+ * `libNVxxxx.so` not found when launching an executable
+   * Add the `lib/` directory of the conda environment to `LD_LIBRARY_PATH`
+   * Example: `export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:~/anaconda3/envs/adop/lib`

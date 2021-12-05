@@ -611,7 +611,7 @@ __global__ void RenderBackward(DevicePointCloud point_cloud, float* dropout_p, R
                 vec2 dR_dp = vec2(dR_dpx, dR_dpy) / float(texture_channels);
 
 
-                float grad_scale = 1.f;
+                float grad_scale    = 1.f;
                 auto cam2           = cam;
                 cam2.crop_transform = cam.crop_transform.scale(scale * grad_scale);
 

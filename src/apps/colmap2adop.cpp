@@ -7,8 +7,6 @@
 #include "saiga/core/util/commandLineArguments.h"
 #include "saiga/core/util/exif/TinyEXIF.h"
 #include "saiga/core/util/file.h"
-#include "saiga/core/util/json11.hpp"
-#include "saiga/core/util/tinyxml2.h"
 #include "saiga/vision/cameraModel/OCam.h"
 #include "saiga/vision/util/ColmapReader.h"
 

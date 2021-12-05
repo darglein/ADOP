@@ -615,7 +615,14 @@ void RealTimeRenderer::LoadNets()
 
     params = std::make_shared<CombinedParams>(ex.dir + "/params.ini");
 
-    params->net_params.half_float             = true;
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, 0);
+    if (deviceProp.major > 6)
+    {
+        std::cout << "Using half_float inference" << std::endl;
+        params->net_params.half_float = true;
+    }
+
     params->pipeline_params.train             = false;
     params->render_params.render_outliers     = false;
     params->train_params.checkpoint_directory = ep.dir;
@@ -636,18 +643,6 @@ void RealTimeRenderer::LoadNets()
     ns = std::make_shared<NeuralScene>(scene, params);
     ns->to(device);
     ns->Train(0, false);
-
-
-    if (0)
-    {
-        auto read_poses = ns->poses->Download();
-        for (int i = 0; i < read_poses.size(); ++i)
-        {
-            std::cout << "pose error " << i << ": "
-                      << translationalError(read_poses[i].inverse(), scene->frames[i].pose) << " "
-                      << rotationalError(read_poses[i].inverse(), scene->frames[i].pose) << std::endl;
-        }
-    }
 
     rt_intrinsics = IntrinsicsModule(scene->scene_cameras.front().K);
     rt_extrinsics = PoseModule(scene->frames[0].pose);
