@@ -223,3 +223,14 @@ https://user-images.githubusercontent.com/16142878/138441057-dc0b0074-8e8e-4ba2-
 https://user-images.githubusercontent.com/16142878/138441154-fa218d86-273c-4db1-951d-c7d39c015844.mp4
 
 
+## Citation
+
+```
+@article{ruckert2021adop,
+  title={Adop: Approximate differentiable one-pixel point rendering},
+  author={R{\"u}ckert, Darius and Franke, Linus and Stamminger, Marc},
+  journal={arXiv preprint arXiv:2110.06635},
+  year={2021}
+}
+
+```
