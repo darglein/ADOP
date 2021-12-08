@@ -245,12 +245,6 @@ void SceneViewer::imgui()
         }
 
 
-        if (ImGui::Button("save points ply"))
-        {
-            std::string file = scene->file_dataset_base + "/point_cloud_exported.ply";
-            Saiga::UnifiedModel(scene->point_cloud).Save(file);
-        }
-
         if (ImGui::Button("Random rotation"))
         {
             for (auto& f : scene->frames)
@@ -332,6 +326,12 @@ void SceneViewer::imgui()
     if (ImGui::Button("save scene"))
     {
         scene->Save();
+    }
+
+    if (ImGui::Button("save points ply"))
+    {
+        std::string file = scene->file_dataset_base + "/point_cloud_exported.ply";
+        Saiga::UnifiedModel(scene->point_cloud).Save(file);
     }
 }
 
