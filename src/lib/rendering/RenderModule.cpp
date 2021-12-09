@@ -22,7 +22,6 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> PointRenderMod
     render_data.params       = params->render_params;
     render_data.timer_system = timer_system;
 
-
     if (!this->is_training())
     {
         render_data.params.dropout = 0;

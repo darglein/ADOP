@@ -425,7 +425,7 @@ void RealTimeRenderer::Render(ImageInfo fd)
         std::swap(ns->poses, rt_extrinsics);
 
         old_cutoff                        = params->render_params.dist_cutoff;
-        params->render_params.dist_cutoff = 100;
+        params->render_params.dist_cutoff = fd.distortion.MonotonicThreshold();
 
         batch.front()->img.camera_index      = 0;
         batch.front()->img.image_index       = 0;
@@ -544,7 +544,7 @@ void RealTimeRenderer::RenderColor(ImageInfo fd, int flags)
         std::swap(ns->poses, rt_extrinsics);
 
         old_cutoff                        = params->render_params.dist_cutoff;
-        params->render_params.dist_cutoff = 100;
+        params->render_params.dist_cutoff = fd.distortion.MonotonicThreshold();
 
         nri.images.front().camera_index      = 0;
         nri.images.front().image_index       = 0;
