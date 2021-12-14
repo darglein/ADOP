@@ -8,6 +8,7 @@
 #include "saiga/core/geometry/cameraAnimation.h"
 #include "saiga/core/util/commandLineArguments.h"
 #include "saiga/core/util/exif/TinyEXIF.h"
+
 #include "git_sha1.h"
 
 
@@ -374,6 +375,12 @@ void ADOPViewer::Recording(ImageInfo& fd)
         renderer->tone_mapper.params_dirty          = true;
 
         update_curve = true;
+    }
+
+    if (ImGui::Button("preset kemenate"))
+    {
+        ::camera->position = vec4(7.79858, 1.07699, -0.849739, 1);
+        ::camera->rot      = quat( 0.731483, -0.00347084, 0.68185, 0.00113975);
     }
 
 

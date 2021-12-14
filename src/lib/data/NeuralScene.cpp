@@ -380,6 +380,12 @@ void NeuralScene::Log(const std::string& log_dir)
         PrintTensorInfo(poses->poses_se3);
     }
 
+    if (!params->optimizer_params.fix_points)
+    {
+        std::cout << "Point Position: ";
+        PrintTensorInfo(point_cloud_cuda->t_position);
+    }
+
     if (camera->vignette_net && !params->optimizer_params.fix_vignette)
     {
         camera->vignette_net->PrintParams(log_dir, scene->scene_name);
