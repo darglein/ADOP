@@ -51,10 +51,10 @@ target_include_directories(torchvision PUBLIC
 PackageHelperTarget(torchvision TORCHVISION_FOUND)
 
 
-#add_subdirectory(External/tensorboard_logger)
+add_subdirectory(External/tensorboard_logger)
 #target_include_directories(tensorboard_logger PUBLIC External/tensorboard_logger/include ${CMAKE_CURRENT_BINARY_DIR}/External/tensorboard_logger)
-#set_property(TARGET tensorboard_logger PROPERTY POSITION_INDEPENDENT_CODE ON)
-#PackageHelperTarget(tensorboard_logger TBL_FOUND)
+set_property(TARGET tensorboard_logger PROPERTY POSITION_INDEPENDENT_CODE ON)
+PackageHelperTarget(tensorboard_logger TBL_FOUND)
 
 ############# COMPILER FLAGS ###############
 

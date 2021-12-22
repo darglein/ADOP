@@ -19,6 +19,7 @@
 #include <torch/script.h>
 
 #include "git_sha1.h"
+#include "tensorboard_logger.h"
 
 std::string full_experiment_dir;
 
@@ -293,6 +294,8 @@ class NeuralTrainer
     std::string ep_dir;
     LRSchedulerPlateau lr_scheduler;
 
+    std::shared_ptr<TensorBoardLogger> tblogger;
+
     ~NeuralTrainer() {}
 
     NeuralTrainer()
@@ -307,6 +310,7 @@ class NeuralTrainer
         SAIGA_ASSERT(console.rdbuf());
         std::cout.rdbuf(console.rdbuf());
 
+        tblogger     = std::make_shared<TensorBoardLogger>((full_experiment_dir + "/tfevents.pb").c_str());
         train_scenes = std::make_shared<TrainScene>(params->train_params.scene_names);
 
         // Save all paramters into experiment output dir
@@ -337,14 +341,30 @@ class NeuralTrainer
                 if (params->train_params.do_train && epoch_id > 0)
                 {
                     auto epoch_loss = TrainEpoch(epoch_id, train_scenes->train_cropped_samplers, false, "Train");
+                    for (auto& sd : train_scenes->data)
+                    {
+                        tblogger->add_scalar("LossTrain/" + sd.scene->scene->scene_name, epoch_id,
+                                             sd.epoch_loss.Average().loss_float);
+                        sd.epoch_loss.Average().AppendToFile(
+                            full_experiment_dir + "loss_train_" + sd.scene->scene->scene_name + ".txt", epoch_id);
+                    }
 
                     if (params->train_params.optimize_eval_camera)
                     {
                         TrainEpoch(epoch_id, train_scenes->test_cropped_samplers, true, "EvalRefine");
+                        for (auto& sd : train_scenes->data)
+                        {
+                            tblogger->add_scalar("LossEvalRefine/" + sd.scene->scene->scene_name, epoch_id,
+                                                 sd.epoch_loss.Average().loss_float);
+                            sd.epoch_loss.Average().AppendToFile(
+                                full_experiment_dir + "loss_eval_refine_" + sd.scene->scene->scene_name + ".txt",
+                                epoch_id);
+                        }
                     }
 
                     auto reduce_factor           = lr_scheduler.step(epoch_loss);
                     static double current_factor = 1;
+                    tblogger->add_scalar("LR/factor", epoch_id, current_factor);
                     current_factor *= reduce_factor;
 
                     if (reduce_factor < 1)
@@ -359,12 +379,6 @@ class NeuralTrainer
                     {
                         // s.scene->UpdateLearningRate(epoch_id, params->train_params.num_epochs);
                         s.scene->UpdateLearningRate(epoch_id, reduce_factor);
-                    }
-
-                    for (auto& sd : train_scenes->data)
-                    {
-                        sd.epoch_loss.Average().AppendToFile(
-                            full_experiment_dir + "loss_train_" + sd.scene->scene->scene_name + ".txt", epoch_id);
                     }
                 }
 
@@ -386,8 +400,15 @@ class NeuralTrainer
 
                     for (auto& sd : train_scenes->data)
                     {
-                        sd.epoch_loss.Average().AppendToFile(
-                            full_experiment_dir + "loss_eval_" + sd.scene->scene->scene_name + ".txt", epoch_id);
+                        auto avg = sd.epoch_loss.Average();
+                        tblogger->add_scalar("LossEval/" + sd.scene->scene->scene_name + "/vgg", epoch_id,
+                                             avg.loss_vgg);
+                        tblogger->add_scalar("LossEval/" + sd.scene->scene->scene_name + "/lpips", epoch_id,
+                                             avg.loss_lpips);
+                        tblogger->add_scalar("LossEval/" + sd.scene->scene->scene_name + "/psnr", epoch_id,
+                                             avg.loss_psnr);
+                        avg.AppendToFile(full_experiment_dir + "loss_eval_" + sd.scene->scene->scene_name + ".txt",
+                                         epoch_id);
                     }
                 }
             }

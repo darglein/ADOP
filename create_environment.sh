@@ -5,7 +5,7 @@ git submodule update --init --recursive --jobs 0
 
 source $(conda info --base)/etc/profile.d/conda.sh
 
-#conda update -n base -c defaults conda
+conda update -n base -c defaults conda
 
 conda create -y -n adop python=3.9.7
 conda activate adop
