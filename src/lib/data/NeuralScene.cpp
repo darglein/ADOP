@@ -347,7 +347,7 @@ void NeuralScene::SaveCheckpoint(const std::string& checkpoint_dir, bool reduced
 }
 void NeuralScene::Log(const std::string& log_dir)
 {
-    std::cout << "Scene Log - Texture: " << std::endl;
+    std::cout << "Scene Log - Texture: ";
     PrintTensorInfo(texture->texture);
     {
         auto bg = texture->GetBackgroundColor();

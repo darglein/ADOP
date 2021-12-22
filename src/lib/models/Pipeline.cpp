@@ -404,7 +404,6 @@ void NeuralPipeline::UpdateLearningRate(double factor)
 
 void NeuralPipeline::Train(bool train)
 {
-    std::cout << "> Reset cuda cache" << std::endl;
     render_module = nullptr;
     c10::cuda::CUDACachingAllocator::emptyCache();
     render_module = PointRenderModule(params);

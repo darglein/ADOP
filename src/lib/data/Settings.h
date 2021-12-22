@@ -160,14 +160,14 @@ struct OptimizerParams : public ParamsBase
     bool fix_motion_blur     = true;
     bool fix_rolling_shutter = true;
 
-    double lr_render_network   = 2e-4;
-    double lr_texture          = 5e-2;
-    double lr_background_color = 1e-3;
-    double lr_environment_map  = 5e-3;
+    double lr_render_network   = 0.0002;
+    double lr_texture          = 0.08;   // log_texture: 0.01
+    double lr_background_color = 0.004;  // log_texture 0.0005
+    double lr_environment_map  = 0.02;   // log_texture: 0.0025
 
     // structure
-    double lr_points     = 0.0001;
-    double lr_poses      = 0.008;
+    double lr_points     = 0.001;
+    double lr_poses      = 0.005;
     double lr_intrinsics = 0.01;
 
     // camera
@@ -270,11 +270,11 @@ struct MyTrainParams : public TrainParams
     }
 
     // transformation
-    float noise_pose_r         = 0;  // in Degrees
-    float noise_pose_t         = 0;  // in mm
-    float noise_intr_k         = 0;
-    float noise_intr_d         = 0;
-    float noise_point          = 0;
+    float noise_pose_r = 0;  // in Degrees
+    float noise_pose_t = 0;  // in mm
+    float noise_intr_k = 0;
+    float noise_intr_d = 0;
+    float noise_point  = 0;
 
     float min_zoom           = 0.75;
     float max_zoom           = 1.5f;

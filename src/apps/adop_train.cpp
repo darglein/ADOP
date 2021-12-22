@@ -9,9 +9,10 @@
 #include "saiga/core/util/ProgressBar.h"
 #include "saiga/core/util/commandLineArguments.h"
 #include "saiga/core/util/file.h"
+#include "saiga/cuda/CudaInfo.h"
 #include "saiga/vision/torch/ImageTensor.h"
 #include "saiga/vision/torch/LRScheduler.h"
-#include "saiga/cuda/CudaInfo.h"
+
 #include "data/Dataset.h"
 #include "models/Pipeline.h"
 
@@ -335,12 +336,11 @@ class NeuralTrainer
             {
                 if (params->train_params.do_train && epoch_id > 0)
                 {
-                    auto epoch_loss = TrainEpoch(epoch_id, train_scenes->train_cropped_samplers, false);
+                    auto epoch_loss = TrainEpoch(epoch_id, train_scenes->train_cropped_samplers, false, "Train");
 
                     if (params->train_params.optimize_eval_camera)
                     {
-                        std::cout << "Optimizing meta info from test cameras..." << std::endl;
-                        TrainEpoch(epoch_id, train_scenes->test_cropped_samplers, true);
+                        TrainEpoch(epoch_id, train_scenes->test_cropped_samplers, true, "EvalRefine");
                     }
 
                     auto reduce_factor           = lr_scheduler.step(epoch_loss);
@@ -368,7 +368,7 @@ class NeuralTrainer
                     }
                 }
 
-                if(params->train_params.debug)
+                if (params->train_params.debug)
                 {
                     std::cout << GetMemoryInfo() << std::endl;
                 }
@@ -414,7 +414,7 @@ class NeuralTrainer
 
 
 
-    double TrainEpoch(int epoch_id, std::vector<SceneDataTrainSampler>& data, bool structure_only)
+    double TrainEpoch(int epoch_id, std::vector<SceneDataTrainSampler>& data, bool structure_only, std::string name)
     {
         train_scenes->StartEpoch();
         // Train
@@ -426,7 +426,7 @@ class NeuralTrainer
 
         {
             Saiga::ProgressBar bar(
-                std::cout, "Train " + std::to_string(epoch_id) + " |",
+                std::cout, name + " " + std::to_string(epoch_id) + " |",
                 loader_size * params->train_params.batch_size * params->train_params.inner_batch_size, 30, false, 5000);
             for (std::vector<NeuralTrainData>& batch : *loader)
             {

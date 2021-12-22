@@ -7,3 +7,6 @@
 [submodule "External/torchvision"]
 	path = External/torchvision
 	url = ../../pytorch/vision.git
+[submodule "External/tensorboard_logger"]
+	path = External/tensorboard_logger
+	url = ../../RustingSword/tensorboard_logger.git
