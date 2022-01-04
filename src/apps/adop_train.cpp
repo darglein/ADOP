@@ -281,7 +281,7 @@ class TrainScene
     std::vector<SceneDataTrainSampler> train_cropped_samplers, test_samplers, test_cropped_samplers;
 };
 
-
+ImGui::IMConsole console_error;
 
 class NeuralTrainer
 {
@@ -306,9 +306,14 @@ class NeuralTrainer
         std::string experiment_name = Saiga::CurrentTimeString("%F_%H-%M-%S") + "_" + params->train_params.name;
         full_experiment_dir         = params->train_params.experiment_dir + "/" + experiment_name + "/";
         std::filesystem::create_directories(full_experiment_dir);
+
         console.setOutputFile(full_experiment_dir + "log.txt");
         SAIGA_ASSERT(console.rdbuf());
         std::cout.rdbuf(console.rdbuf());
+
+        console_error.setOutputFile(full_experiment_dir + "error.txt");
+        SAIGA_ASSERT(console_error.rdbuf());
+        std::cerr.rdbuf(console_error.rdbuf());
 
         tblogger     = std::make_shared<TensorBoardLogger>((full_experiment_dir + "/tfevents.pb").c_str());
         train_scenes = std::make_shared<TrainScene>(params->train_params.scene_names);
