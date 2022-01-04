@@ -300,7 +300,7 @@ class NeuralTrainer
 
     NeuralTrainer()
     {
-        lr_scheduler = LRSchedulerPlateau(params->train_params.lr_decay_factor, params->train_params.lr_decay_patience);
+        lr_scheduler = LRSchedulerPlateau(params->train_params.lr_decay_factor, params->train_params.lr_decay_patience, true);
         torch::set_num_threads(1);
 
         std::string experiment_name = Saiga::CurrentTimeString("%F_%H-%M-%S") + "_" + params->train_params.name;
