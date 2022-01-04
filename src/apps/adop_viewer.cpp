@@ -282,17 +282,20 @@ void ADOPViewer::Recording(ImageInfo& fd)
 
         if (record_neural)
         {
+            SAIGA_ASSERT(neural_renderer);
             auto frame = neural_renderer->DownloadRender();
             frame.save(out_dir + "/neural/" + frame_name);
         }
         if (record_debug)
         {
+            SAIGA_ASSERT(neural_renderer);
             auto frame = neural_renderer->DownloadColor();
             frame.save(out_dir + "/debug/" + frame_name);
         }
 
         if (record_gt)
         {
+            SAIGA_ASSERT(neural_renderer);
             TemplatedImage<ucvec4> frame = neural_renderer->DownloadGt();
 
             if (downscale_gt)
@@ -512,6 +515,7 @@ void ADOPViewer::Recording(ImageInfo& fd)
 
     if (!is_recording && ImGui::Button("start recording"))
     {
+        SAIGA_ASSERT(neural_renderer);
         neural_renderer->current_best_gt = -1;
         is_recording                     = true;
         traj                             = camera_spline.Trajectory();

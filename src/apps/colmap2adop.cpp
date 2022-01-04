@@ -37,9 +37,8 @@ std::vector<float> ExposureValuesFromImages(std::vector<std::string> files, std:
         else
         {
             double EV_log2 =
-                log2((info.FNumber * info.FNumber) / info.ExposureTime) + log2(info.ISOSpeedRatings / 100.0);
+                log2((info.FNumber * info.FNumber) / info.ExposureTime) + log2(info.ISOSpeedRatings / 100.0) - info.ExposureBiasValue;
             exposures.push_back(EV_log2);
-            SAIGA_ASSERT(info.ExposureBiasValue == 0);
         }
     }
 

@@ -119,6 +119,7 @@ class RealTimeRenderer
     {
         if (use_gl_tonemapping)
         {
+            SAIGA_ASSERT(output_texture_ldr);
             TemplatedImage<ucvec4> tmp(output_texture_ldr->getHeight(), output_texture_ldr->getWidth());
 
             output_texture_ldr->bind();
@@ -130,6 +131,7 @@ class RealTimeRenderer
         }
         else
         {
+            SAIGA_ASSERT(output_texture);
             TemplatedImage<ucvec4> tmp(output_texture->getHeight(), output_texture->getWidth());
 
             output_texture->bind();
@@ -143,6 +145,7 @@ class RealTimeRenderer
 
     TemplatedImage<ucvec4> DownloadColor()
     {
+        SAIGA_ASSERT(output_color);
         TemplatedImage<ucvec4> tmp(output_color->getHeight(), output_color->getWidth());
 
         output_color->bind();
@@ -154,6 +157,7 @@ class RealTimeRenderer
 
     TemplatedImage<ucvec4> DownloadGt()
     {
+        SAIGA_ASSERT(best_gt_texture);
         TemplatedImage<ucvec4> tmp(best_gt_texture->getHeight(), best_gt_texture->getWidth());
 
         best_gt_texture->bind();
