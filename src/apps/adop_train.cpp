@@ -29,6 +29,23 @@ std::shared_ptr<CombinedParams> params;
 
 torch::Device device = torch::kCUDA;
 
+inline std::string EncodeImageToString(const Image& img, std::string type = "png")
+{
+    auto data = img.saveToMemory(type);
+
+    std::string result;
+    result.resize(data.size());
+
+    memcpy(result.data(), data.data(), data.size());
+    return result;
+}
+
+template <typename T>
+inline void LogImage(TensorBoardLogger* tblogger, const TemplatedImage<T>& img, std::string name, int step)
+{
+    auto img_str = EncodeImageToString(img, "png");
+    tblogger->add_image(name, step, img_str, img.h, img.w, channels(img.type));
+}
 
 static torch::Tensor CropMask(int h, int w, int border)
 {
@@ -300,7 +317,8 @@ class NeuralTrainer
 
     NeuralTrainer()
     {
-        lr_scheduler = LRSchedulerPlateau(params->train_params.lr_decay_factor, params->train_params.lr_decay_patience, true);
+        lr_scheduler =
+            LRSchedulerPlateau(params->train_params.lr_decay_factor, params->train_params.lr_decay_patience, true);
         torch::set_num_threads(1);
 
         std::string experiment_name = Saiga::CurrentTimeString("%F_%H-%M-%S") + "_" + params->train_params.name;
@@ -537,6 +555,16 @@ class NeuralTrainer
             {
                 for (int i = 0; i < result.image_ids.size(); ++i)
                 {
+                    auto err = ImageTransformation::ErrorImage(result.outputs[i], result.targets[i]);
+                    TemplatedImage<ucvec3> combined(err.h, err.w + result.outputs[i].w);
+                    combined.getImageView().setSubImage(0, 0, result.outputs[i].getImageView());
+                    combined.getImageView().setSubImage(0, result.outputs[i].w, err.getImageView());
+
+                    LogImage(tblogger.get(), combined,
+                             "Checkpoint" + leadingZeroString(epoch_id, 4) + "/" + scene_data.scene->scene->scene_name,
+                             result.image_ids[i]);
+
+
                     result.outputs[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
                                            leadingZeroString(result.image_ids[i], 5) +
                                            params->train_params.output_file_type);
