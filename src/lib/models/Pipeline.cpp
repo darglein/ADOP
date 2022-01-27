@@ -399,7 +399,10 @@ void NeuralPipeline::OptimizerStep(int epoch_id)
 }
 void NeuralPipeline::UpdateLearningRate(double factor)
 {
-    UpdateLR(render_optimizer.get(), factor);
+    if(render_optimizer)
+    {
+        UpdateLR(render_optimizer.get(), factor);
+    }
 }
 
 void NeuralPipeline::Train(bool train)
