@@ -7,7 +7,6 @@
 
 void CombinedParams::Check()
 {
-
     if (net_params.conv_block == "partial" || net_params.conv_block == "partial_multi" ||
         pipeline_params.enable_environment_map || pipeline_params.cat_masks_to_color)
     {
@@ -54,6 +53,7 @@ void CombinedParams::imgui()
     ImGui::Checkbox("debug_weight_color", &render_params.debug_weight_color);
     ImGui::Checkbox("debug_depth_color", &render_params.debug_depth_color);
     ImGui::SliderFloat("debug_max_weight", &render_params.debug_max_weight, 0, 100);
+    ImGui::Checkbox("debug_print_num_rendered_points", &render_params.debug_print_num_rendered_points);
 
     ImGui::SliderFloat("dropout", &render_params.dropout, 0, 1);
     ImGui::SliderFloat("depth_accept", &render_params.depth_accept, 0, 0.1);

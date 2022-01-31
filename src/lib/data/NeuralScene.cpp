@@ -502,6 +502,7 @@ void NeuralScene::DownloadIntrinsics()
     }
     else
     {
+        return;
         SAIGA_EXIT_ERROR("todo");
     }
 }

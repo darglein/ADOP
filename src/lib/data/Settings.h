@@ -36,9 +36,10 @@ struct RenderParams : public ParamsBase
     bool drop_out_points_by_radius  = false;
 
     // Writes the weight into the 4-channel output texture
-    bool debug_weight_color = false;
-    bool debug_depth_color  = false;
-    float debug_max_weight  = 10;
+    bool debug_weight_color              = false;
+    bool debug_depth_color               = false;
+    float debug_max_weight               = 10;
+    bool debug_print_num_rendered_points = false;
 
     float distortion_gradient_factor = 0.005;
     float K_gradient_factor          = 1;

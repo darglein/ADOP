@@ -383,7 +383,7 @@ void ADOPViewer::Recording(ImageInfo& fd)
     if (ImGui::Button("preset kemenate"))
     {
         ::camera->position = vec4(7.79858, 1.07699, -0.849739, 1);
-        ::camera->rot      = quat( 0.731483, -0.00347084, 0.68185, 0.00113975);
+        ::camera->rot      = quat(0.731483, -0.00347084, 0.68185, 0.00113975);
     }
 
 
@@ -452,6 +452,27 @@ void ADOPViewer::Recording(ImageInfo& fd)
         camera_spline.time_in_seconds = 15;
 
         update_curve = true;
+    }
+
+    if (ImGui::Button("playground extrapolation1"))
+    {
+        ::camera->position = vec4(2.97414, -2.65628, 4.64867, 1);
+        ::camera->rot      = quat(0.0477469, 0.270376, -0.280752, 0.919671);
+        ::camera->calculateModel();
+        ::camera->updateFromModel();
+
+        std::cout << Sophus::SE3f::fitToSE3(camera->model * GL2CVView()).cast<double>() << std::endl;
+        std::cout << Sophus::SE3f::fitToSE3(camera->model * GL2CVView()).cast<double>().inverse() << std::endl;
+    }
+
+    if (ImGui::Button("playground extrapolation2"))
+    {
+        camera->position = vec4(-3.72784, -2.68887, -5.74922, 1);
+        camera->rot      = quat(-0.190701, -0.93891, -0.0748287, 0.276543);
+        ::camera->calculateModel();
+        ::camera->updateFromModel();
+        std::cout << Sophus::SE3f::fitToSE3(camera->model * GL2CVView()).cast<double>() << std::endl;
+        std::cout << Sophus::SE3f::fitToSE3(camera->model * GL2CVView()).cast<double>().inverse() << std::endl;
     }
 
 

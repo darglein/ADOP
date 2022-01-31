@@ -1497,6 +1497,18 @@ if (info->params.debug_depth_color && info->params.num_texture_channels == 4)
     }
 }
 
+if (info->params.debug_print_num_rendered_points)
+{
+    double weight_sum = 0;
+    for (int i = 0; i < info->num_layers; ++i)
+    {
+        // Allocate result tensor
+        auto& l = cache.layers_cuda[i];
+        weight_sum += l.weight.sum().item().toFloat();
+    }
+    std::cout << "# Rasterized Points = " << (int)weight_sum << std::endl;
+}
+
 if (ctx)
 {
     SAIGA_OPTIONAL_TIME_MEASURE("Save in Graph", info->timer_system);
