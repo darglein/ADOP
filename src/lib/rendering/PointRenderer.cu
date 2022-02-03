@@ -351,7 +351,7 @@ __global__ void RenderForwardMulti(DevicePointCloud point_cloud, float* dropout_
                 auto [aff, poly]          = d_render_params.OcamIntrinsics(cam.camera_index);
                 thrust::tie(image_p_a, z) = ProjectPointOcam(position, normal, V, aff, poly,
                                                              d_render_params.check_normal, d_render_params.dist_cutoff);
-                radius_pixels             = 1;
+                radius_pixels = d_render_params.depth[0].Image().h * cam.crop_transform.fx * drop_out_radius / z;
             }
 
             if (z == 0) continue;
@@ -430,7 +430,7 @@ __global__ void RenderBackward(DevicePointCloud point_cloud, float* dropout_p, R
             thrust::tie(image_p_a, z) = ProjectPointOcam(position, normal, V, aff, poly, d_render_params.check_normal,
                                                          d_render_params.dist_cutoff);
 
-            radius_pixels = 1;
+            radius_pixels = d_render_params.depth[0].Image().h * cam.crop_transform.fx * drop_out_radius / z;
         }
 
         if (z == 0) return;
@@ -1295,6 +1295,14 @@ void PointRendererCache::RenderForwardMulti(int batch, NeuralPointCloudCuda poin
 {
     SAIGA_ASSERT(point_cloud);
     auto& cam = info->images[batch];
+
+    if (cam.camera_model_type != CameraModel::PINHOLE_DISTORTION)
+    {
+        // point discarding is currently only supported by pinhole
+        SAIGA_ASSERT(info->params.drop_out_points_by_radius == false);
+    }
+
+
     SAIGA_ASSERT(info->scene->texture->texture.is_cuda());
 
 
@@ -1405,6 +1413,7 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> BlendPointClou
             scene.BuildOutlierCloud(params.outlier_count);
         }
     }
+
 
 
     {

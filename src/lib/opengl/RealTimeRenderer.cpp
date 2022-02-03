@@ -503,8 +503,6 @@ void RealTimeRenderer::RenderColor(ImageInfo fd, int flags)
     nri.scene          = ns.get();
     nri.num_layers     = color_layer;
     nri.timer_system   = nullptr;
-    nri.params         = pipeline->render_module->params->render_params;
-    nri.params.dropout = false;
 
     fd.image_index  = 0;
     fd.camera_index = 0;
@@ -515,13 +513,7 @@ void RealTimeRenderer::RenderColor(ImageInfo fd, int flags)
 
 
 
-    if (flags == 0)
-    {
-        // Render the point color
-        nri.params.num_texture_channels = 4;
-        nri.scene->texture              = color_texture;
-        nri.scene->environment_map      = nullptr;
-    }
+
 
     nri.images.push_back(fd);
 
@@ -551,6 +543,16 @@ void RealTimeRenderer::RenderColor(ImageInfo fd, int flags)
         nri.images.front().camera_model_type = CameraModel::PINHOLE_DISTORTION;
     }
 
+    nri.params = pipeline->render_module->params->render_params;
+    nri.params.dropout = false;
+
+    if (flags == 0)
+    {
+        // Render the point color
+        nri.params.num_texture_channels = 4;
+        nri.scene->texture              = color_texture;
+        nri.scene->environment_map      = nullptr;
+    }
 
     torch::Tensor x            = pipeline->render_module->forward(&nri).first.back();
     nri.scene->texture         = old_tex;
