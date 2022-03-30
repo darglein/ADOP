@@ -1,6 +1,6 @@
 # Compiling ADOP
 
-Important: The Windows setup my not be working in all future commits, it was originally written for commit a433698. 
+Important: The Windows setup may not be working in all future commits, it was originally written for commit a433698. 
 It is also not tested as well as the Ubuntu setup, so prefer using that if issues arise.
 
 ### 1. Prerequisites
