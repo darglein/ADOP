@@ -1,6 +1,6 @@
 # Compiling ADOP
 
-Important: The Windows setup is unlikely to be supported in future commits, it was originally written for commit a433698. 
+Important: The Windows setup my not be working in all future commits, it was originally written for commit a433698. 
 It is also not tested as well as the Ubuntu setup, so prefer using that if issues arise.
 
 ### 1. Prerequisites
@@ -34,7 +34,6 @@ conda install -y cudnn=8.2.1.32 cudatoolkit-dev=11.4 cudatoolkit=11.4 -c nvidia 
 conda install -y astunparse numpy ninja pyyaml mkl mkl-include setuptools cmake=3.19.6 cffi typing_extensions future six requests dataclasses pybind11=2.6.2
 conda install -y freeimage=3.18 jpeg=9d protobuf=3.13 -c conda-forge
 
-
 ```
 
 ### 3. Install Pytorch from Source
@@ -52,7 +51,7 @@ conda activate adop_windows
 cd .jenkins/pytorch/win-test-helpers/installation-helpers
 
 set USE_CUDA=1
-#important: 11.3, as the following install scripts dont work for 11.4
+#important: CUDA_VERSION=11.3, as the following install scripts don't work for 11.4
 set CUDA_VERSION=11.3
 set BUILD_TYPE=release
 set TMP_DIR_WIN=%TMP%
@@ -80,7 +79,8 @@ python setup.py install
 
 ### 4. Build ADOP 
 
-You may want to remove "ADOP/External/saiga/cmake/FindMKL.cmake" if MKL tools are not globally installed, otherwise CMake may fail.
+You may want to remove "ADOP/External/saiga/cmake/FindMKL.cmake" if MKL tools are not globally installed, otherwise CMake may fail with <LNK1104 "MKL_LIBRARIES_CORE-NOTFOUND.lib" not found>.
+.
 
 ```shell
 cd ADOP
@@ -105,4 +105,4 @@ cmake -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%/Lib/site-packages/torch/;%CONDA_PREFIX
 
 ### Troubleshooting
   * cl.exe not found in PATH: Try restarting the PC or clear the Environment Variables set for the pytorch compilation
-  * CMake: Some MKL error - See above and remove FindMKL.cmake and check your conda packages for completeness
+  * CMake: <LNK1104 "MKL_LIBRARIES_CORE-NOTFOUND.lib" not found> - See above and remove FindMKL.cmake and check your conda packages for completeness
