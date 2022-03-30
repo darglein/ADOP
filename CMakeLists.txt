@@ -80,7 +80,9 @@ set(LIBS ${LIBS} ${LIB_TARGETS})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
+#dll has all symbols, to avoid __declspecs everywhere
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+include(GenerateExportHeader)
 
 ############# SOURCE ###############
 

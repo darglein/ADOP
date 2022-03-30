@@ -48,7 +48,7 @@ TEST(Loss, MSE)
 TEST(Loss, LPIPS)
 {
     LossTest lt;
-    LPIPS lpips(PROJECT_DIR.append("loss/traced_lpips.pt"));
+    LPIPS lpips(PROJECT_DIR.append("loss/traced_lpips.pt").string());
     lpips.module.eval();
     std::cout << "LPIPS " << lpips.forward(lt.output, lt.target).item().toFloat() << std::endl;
 }
@@ -57,7 +57,7 @@ TEST(Loss, LPIPSGPU)
 {
     auto device = torch::kCUDA;
     LossTest lt;
-    LPIPS lpips(PROJECT_DIR.append("loss/traced_lpips.pt"));
+    LPIPS lpips(PROJECT_DIR.append("loss/traced_lpips.pt").string());
     lpips.module.eval();
     lpips.module.to(device);
     std::cout << "LPIPS " << lpips.forward(lt.output.to(device), lt.target.to(device)).item().toFloat() << std::endl;
@@ -87,7 +87,7 @@ TEST(Loss, VGGCaffe)
 {
     LossTest lt;
 
-    auto loss_vgg = Saiga::PretrainedVGG19Loss(PROJECT_DIR.append("loss/vgg_script_caffe.pth"), true, false);
+    auto loss_vgg = Saiga::PretrainedVGG19Loss(PROJECT_DIR.append("loss/vgg_script_caffe.pth").string(), true, false);
     loss_vgg->eval();
 
     std::cout << "vgg " << loss_vgg->forward(lt.output, lt.target).item().toFloat() << std::endl;
@@ -99,7 +99,7 @@ TEST(Loss, VGGCaffeCuda)
     auto device = torch::kCUDA;
     LossTest lt;
 
-    auto loss_vgg = Saiga::PretrainedVGG19Loss(PROJECT_DIR.append("loss/vgg_script_caffe.pth"), true, false);
+    auto loss_vgg = Saiga::PretrainedVGG19Loss(PROJECT_DIR.append("loss/vgg_script_caffe.pth").string(), true, false);
     loss_vgg->eval();
     loss_vgg->to(device);
 

@@ -1648,11 +1648,18 @@ __global__ void ApplyTangent(Vec6* tangent, Sophus::SE3d* pose, int n)
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= n) return;
 
+    //TODO!! 
     Vec6 t = tangent[tid];
     auto p = pose[tid];
-    p      = Sophus::se3_expd(t) * p;
+#ifdef _WIN32
+    Sophus::SE3d p2(Sophus::se3_expd(t) * p);
+    for (int i = 0; i < 7; ++i)
+        pose[tid].data()[i] = p2.data()[i];
+#else
+    p         = Sophus::se3_expd(t) * p;
+    pose[tid] = p;
+#endif
 
-    pose[tid]    = p;
     tangent[tid] = Vec6::Zero();
 }
 
