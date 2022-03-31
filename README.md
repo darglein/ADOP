@@ -28,7 +28,7 @@ well over 100M points in real time.
 
 <a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
 
-## README hierarchy
+## README Hierarchy
 
 There are additional READMEs in subfolders. Take a look at [src/README.md](src/README.md) and [src/README_WINDOWS.md](src/README_WINDOWS.md) for compile instructions and [scenes/README.md](scenes/README.md) for information on custom datasets.
 
@@ -38,7 +38,7 @@ There are additional READMEs in subfolders. Take a look at [src/README.md](src/R
  * A python wrapper for pyTorch is currently not available. Feel free to submit a pull-request on that issue.
  * The detailed compile instructions can be found here: [src/README.md](src/README.md)
 
-## Running ADOP on pretrained models
+## Running ADOP on Pretrained Models
 
 After a successful compilation, the best way to get started is to run `adop_viewer` on the *tanks and temples* scenes using our pretrained models.
 First, download the [scenes](https://zenodo.org/record/5602606/files/scenes.zip?download=1) and extract them into `ADOP/scenes`. 
