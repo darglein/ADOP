@@ -1,4 +1,4 @@
-# Compiling ADOP
+# Compiling ADOP on Windows
 
 Important: The Windows setup may not be working in all future commits, it was originally written for commit a433698. 
 It is also not tested as well as the Ubuntu setup, so prefer using that if issues arise.
@@ -79,8 +79,8 @@ python setup.py install
 
 ### 4. Build ADOP 
 
-You may want to remove "ADOP/External/saiga/cmake/FindMKL.cmake" if MKL tools are not globally installed, otherwise CMake may fail with <LNK1104 "MKL_LIBRARIES_CORE-NOTFOUND.lib" not found>.
-.
+You may want to remove "ADOP/External/saiga/cmake/FindMKL.cmake" if MKL tools are not globally installed on your system, otherwise compiling may fail with <LNK1104 "MKL_LIBRARIES_CORE-NOTFOUND.lib" not found>.
+
 
 ```shell
 cd ADOP
@@ -104,5 +104,5 @@ cmake -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%/Lib/site-packages/torch/;%CONDA_PREFIX
 ```
 
 ### Troubleshooting
-  * cl.exe not found in PATH: Try restarting the PC or clear the Environment Variables set for the pytorch compilation
+  * cl.exe not found in PATH: Try restarting the PC or reset the Environment Variables set for the pytorch compiling
   * CMake: <LNK1104 "MKL_LIBRARIES_CORE-NOTFOUND.lib" not found> - See above and remove FindMKL.cmake and check your conda packages for completeness

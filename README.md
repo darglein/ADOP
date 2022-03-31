@@ -28,6 +28,9 @@ well over 100M points in real time.
 
 <a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
 
+## README hierarchy
+
+There are additional READMEs in subfolders. Take a look at [src/README.md](src/README.md) and [src/README_WINDOWS.md](src/README_WINDOWS.md) for compile instructions and [scenes/README.md](scenes/README.md) for information on custom datasets.
 
 ## Compile Instructions
 
