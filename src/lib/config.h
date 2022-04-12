@@ -33,7 +33,7 @@
 // UNIX, ignore _API
 #    define _NP_API
 #    define _NP_EXT_API
-#    define _NP_INLINE_API
+#    define _NP_INLINE_API inline
 #endif
 
 
