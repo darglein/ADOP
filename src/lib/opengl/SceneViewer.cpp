@@ -44,9 +44,13 @@ SceneViewer::SceneViewer(std::shared_ptr<SceneData> scene) : scene(scene)
 
     scene_camera.enableInput();
 
-
     {
         auto obj = FrustumLineMesh(scene_camera.proj, frustum_size, false);
+
+        for (auto p : obj.position)
+        {
+            std::cout << p.transpose() << std::endl;
+        }
         obj.SetVertexColor(vec4(1, 1, 1, 1));
         frustum_asset = std::make_shared<LineVertexColoredAsset>(obj);
     }
