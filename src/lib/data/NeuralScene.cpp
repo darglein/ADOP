@@ -157,14 +157,6 @@ NeuralScene::NeuralScene(std::shared_ptr<SceneData> scene, std::shared_ptr<Combi
             g_cam_adam.emplace_back(camera->camera_response->parameters(), std::move(opt));
         }
 
-        if (params->camera_params.enable_motion_blur && !params->optimizer_params.fix_motion_blur)
-        {
-            std::cout << "optimizing motion blur with lr " << params->optimizer_params.lr_motion_blur << std::endl;
-            auto opt = std::make_unique<torch::optim::AdamOptions>(params->optimizer_params.lr_motion_blur);
-            std::vector<torch::Tensor> ts = camera->motion_blur->parameters();
-            g_cam_adam.emplace_back(ts, std::move(opt));
-        }
-
         if (params->camera_params.enable_white_balance && !params->optimizer_params.fix_wb)
         {
             std::cout << "optimizing white balance with lr " << params->optimizer_params.lr_wb << std::endl;

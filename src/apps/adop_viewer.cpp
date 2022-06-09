@@ -435,17 +435,18 @@ void ADOPViewer::Recording(ImageInfo& fd)
         auto exp_ref    = scene->scene->frames[kfs[0]].exposure_value;
         auto exp_target = 13;
 
-        Eigen::Matrix<double, -1, 1> x(1);
+        std::vector<double> x;
+        x.push_back(1);
         for (auto& k : camera_spline.keyframes)
         {
             k.user_data = x;
         }
 
 
-        camera_spline.keyframes[0].user_data(0) = exp_ref;
-        camera_spline.keyframes[1].user_data(0) = exp_ref;
-        camera_spline.keyframes[2].user_data(0) = exp_target;
-        camera_spline.keyframes[3].user_data(0) = exp_target;
+        camera_spline.keyframes[0].user_data[0] = exp_ref;
+        camera_spline.keyframes[1].user_data[0] = exp_ref;
+        camera_spline.keyframes[2].user_data[0] = exp_target;
+        camera_spline.keyframes[3].user_data[0] = exp_target;
 
         hdr_video_gen = true;
 
@@ -577,7 +578,7 @@ void ADOPViewer::Recording(ImageInfo& fd)
 
         if (hdr_video_gen)
         {
-            auto new_exp                                = frame.user_data(0);
+            auto new_exp                                = frame.user_data[0];
             renderer->tone_mapper.params.exposure_value = new_exp;
             renderer->tone_mapper.params_dirty          = true;
         }

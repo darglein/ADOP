@@ -15,7 +15,8 @@ using namespace Saiga;
 
 struct RenderParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(RenderParams);
+    SAIGA_PARAM_STRUCT(RenderParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
 
 
     // only for debugging
@@ -50,7 +51,8 @@ struct RenderParams : public ParamsBase
     bool output_background_mask        = false;
     float output_background_mask_value = 0;
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
         SAIGA_PARAM(render_outliers);
         SAIGA_PARAM(check_normal);
@@ -68,7 +70,8 @@ struct RenderParams : public ParamsBase
 
 struct NeuralCameraParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(NeuralCameraParams);
+    SAIGA_PARAM_STRUCT(NeuralCameraParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
 
     bool enable_vignette = true;
     bool enable_exposure = true;
@@ -82,7 +85,8 @@ struct NeuralCameraParams : public ParamsBase
     float response_gamma       = 1.0 / 2.2;
     float response_leak_factor = 0.01;
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
         SAIGA_PARAM(enable_vignette);
         SAIGA_PARAM(enable_exposure);
@@ -100,8 +104,10 @@ struct NeuralCameraParams : public ParamsBase
 
 struct OptimizerParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(OptimizerParams);
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    SAIGA_PARAM_STRUCT(OptimizerParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
         SAIGA_PARAM(texture_optimizer);
 
@@ -183,9 +189,11 @@ struct OptimizerParams : public ParamsBase
 
 struct PipelineParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(PipelineParams);
+    SAIGA_PARAM_STRUCT(PipelineParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
         SAIGA_PARAM(train);
 
@@ -229,9 +237,13 @@ struct MyTrainParams : public TrainParams
     MyTrainParams() {}
     MyTrainParams(const std::string file) { Load(file); }
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    using ParamStructType = MyTrainParams;
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
+
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
-        TrainParams::Params(ini, app);
+        TrainParams::Params(it);
         SAIGA_PARAM(train_crop_size);
         SAIGA_PARAM(train_mask_border);
         SAIGA_PARAM(reduced_check_point);

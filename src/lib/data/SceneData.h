@@ -87,13 +87,48 @@ struct FrameData : public ImageInfo
 
 struct SceneDatasetParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(SceneDatasetParams);
+    SAIGA_PARAM_STRUCT(SceneDatasetParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override;
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
+    {
+        SAIGA_PARAM(file_model);
+        SAIGA_PARAM(image_dir);
+        SAIGA_PARAM(mask_dir);
+        SAIGA_PARAM_LIST(camera_files, ' ');
 
+        SAIGA_PARAM(file_point_cloud);
+        SAIGA_PARAM(file_point_cloud_compressed);
+
+
+        int camera_type_int = (int)camera_model;
+        // SAIGA_PARAM(camera_type_int);
+        if (it) it->SaigaParam(name_, camera_type_int, 0, "camera_type_int", "");
+
+        camera_model = (CameraModel)camera_type_int;
+
+        SAIGA_PARAM(znear);
+        SAIGA_PARAM(zfar);
+        SAIGA_PARAM(render_scale);
+        SAIGA_PARAM(scene_exposure_value);
+
+
+        {
+            std::vector<std::string> up_vector = split(array_to_string(this->scene_up_vector), ' ');
+             SAIGA_PARAM_LIST_COMMENT(up_vector, ' ', "");
+//            if (it) it->SaigaParamList(name_, up_vector, {}, "up_vector", ' ', "");
+            SAIGA_ASSERT(up_vector.size() == 3);
+            for (int i = 0; i < 3; ++i)
+            {
+                double d           = to_double(up_vector[i]);
+                scene_up_vector(i) = d;
+            }
+        }
+    }
     std::string file_model;
-    std::string image_dir          = "color/";
-    std::string mask_dir           = "not set";
+    std::string image_dir = "color/";
+    std::string mask_dir  = "not set";
 
     std::string file_point_cloud            = "point_cloud.ply";
     std::string file_point_cloud_compressed = "point_cloud.bin";
@@ -114,11 +149,125 @@ struct SceneDatasetParams : public ParamsBase
 
 struct SceneCameraParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(SceneCameraParams);
+    SAIGA_PARAM_STRUCT(SceneCameraParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
     virtual ~SceneCameraParams() {}
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app)  override;
 
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
+    {
+        SAIGA_PARAM(w);
+        SAIGA_PARAM(h);
+
+        auto vector2string = [](auto vector)
+        {
+            std::stringstream sstrm;
+            sstrm << std::setprecision(15) << std::scientific;
+            for (unsigned int i = 0; i < vector.size(); ++i)
+            {
+                sstrm << vector[i];
+                if (i < vector.size() - 1) sstrm << " ";
+            }
+            return sstrm.str();
+        };
+
+
+
+        {
+            std::vector<std::string> K = split(vector2string(this->K.cast<double>().coeffs()), ' ');
+             SAIGA_PARAM_LIST_COMMENT(K, ' ', "# fx fy cx cy s");
+//            if (it) it->SaigaParamList(name_, K, {}, "K", ' ', "# fx fy cx cy s");
+
+            SAIGA_ASSERT(K.size() == 5);
+
+            Vector<float, 5> K_coeffs;
+            for (int i = 0; i < 5; ++i)
+            {
+                double d    = to_double(K[i]);
+                K_coeffs(i) = d;
+            }
+            this->K = IntrinsicsPinholef(K_coeffs);
+        }
+
+        {
+            std::vector<std::string> distortion =
+                split(vector2string(this->distortion.template cast<double>().Coeffs()), ' ');
+             SAIGA_PARAM_LIST_COMMENT(distortion, ' ', "# 8 paramter distortion model. see distortion.h");
+//            if (it)
+//                it->SaigaParamList(name_, distortion, {}, "distortion", ' ',
+//                                   "# 8 paramter distortion model. see distortion.h");
+
+            SAIGA_ASSERT(distortion.size() == 8);
+
+
+            Vector<float, 8> coeffs;
+            for (int i = 0; i < 8; ++i)
+            {
+                double d  = to_double(distortion[i]);
+                coeffs(i) = d;
+            }
+            this->distortion = Distortionf(coeffs);
+        }
+
+
+        {
+            ocam.h = h;
+            ocam.w = w;
+
+            {
+                std::vector<std::string> op = split(vector2string(this->ocam.cast<double>().AffineParams()), ' ');
+                SAIGA_PARAM_LIST_COMMENT(op, ' ', "# c d e cx cy");
+                SAIGA_ASSERT(op.size() == 5);
+
+                Vector<double, 5> a_coeffs;
+                for (int i = 0; i < 5; ++i)
+                {
+                    double d    = to_double(op[i]);
+                    a_coeffs(i) = d;
+                }
+                this->ocam.SetAffineParams(a_coeffs);
+            }
+            {
+                std::vector<std::string> poly_world2cam =
+                    split(vector2string(this->ocam.cast<double>().poly_world2cam), ' ');
+                SAIGA_PARAM_LIST_COMMENT(poly_world2cam, ' ', "");
+
+                std::vector<double> a_coeffs;
+                for (int i = 0; i < poly_world2cam.size(); ++i)
+                {
+                    double d = to_double(poly_world2cam[i]);
+                    a_coeffs.push_back(d);
+                }
+                this->ocam.SetWorld2Cam(a_coeffs);
+            }
+
+            {
+                std::vector<std::string> poly_cam2world =
+                    split(vector2string(this->ocam.cast<double>().poly_cam2world), ' ');
+                SAIGA_PARAM_LIST_COMMENT(poly_cam2world, ' ', "");
+
+                std::vector<double> a_coeffs;
+                for (int i = 0; i < poly_cam2world.size(); ++i)
+                {
+                    double d = to_double(poly_cam2world[i]);
+                    a_coeffs.push_back(d);
+                }
+                this->ocam.SetCam2World(a_coeffs);
+            }
+
+            SAIGA_PARAM(ocam_cutoff);
+        }
+
+
+        std::cout << "  Image Size " << w << "x" << h << std::endl;
+        std::cout << "  Aspect     " << float(w) / h << std::endl;
+        std::cout << "  K          " << K << std::endl;
+        std::cout << "  ocam       " << ocam << std::endl;
+        std::cout << "  ocam cut   " << ocam_cutoff << std::endl;
+        std::cout << "  normalized center " << (vec2(K.cx / w, K.cy / h) - vec2(0.5, 0.5)).transpose() << std::endl;
+        std::cout << "  dist       " << distortion << std::endl;
+    }
 
     int w = 512, h = 512;
     IntrinsicsPinholef K;
@@ -130,7 +279,6 @@ struct SceneCameraParams : public ParamsBase
     CameraModel camera_model_type = CameraModel::PINHOLE_DISTORTION;
 
     // Unprojection to normalized image space
-    vec3 ImageToNormalized(vec2 image_point, float z);
     std::pair<vec2, float> NormalizedToImage(vec3 normalized_point);
 };
 

@@ -244,26 +244,6 @@ void SceneViewer::imgui()
             std::cout << "remove close dis " << doudis << " Points " << bef << " -> " << aft << std::endl;
         }
 
-
-        if (ImGui::Button("Random rotation"))
-        {
-            for (auto& f : scene->frames)
-            {
-                f.pose.setQuaternion(Random::randomQuat<double>());
-            }
-        }
-        if (ImGui::Button("Random rotation up"))
-        {
-            for (auto& f : scene->frames)
-            {
-                vec3 d = Random::sphericalRand(1).cast<float>();
-                vec3 u(0, 1, 0);
-                mat3 R = Saiga::onb(d, u);
-                f.pose.setRotationMatrix(R.cast<double>());
-            }
-        }
-
-
         static float sdev_noise = 0.1;
         ImGui::SetNextItemWidth(100);
         ImGui::InputFloat("###sdev_noise", &sdev_noise);
@@ -422,7 +402,7 @@ void SceneViewer::CreateMasks(bool mult_old_mask)
                     {
                         vec2 ip(x, y);
                         vec2 dist   = cam.K.unproject2(ip);
-                        vec2 undist = undistortPointGN(dist, dist, cam.distortion);
+                        vec2 undist = undistortNormalizedPointSimple(dist, cam.distortion);
                         vec3 np     = vec3(undist(0), undist(1), 1);
                         dir(y, x)   = np.normalized();
                     }

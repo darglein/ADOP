@@ -139,8 +139,6 @@ class NeuralCameraImpl : public torch::nn::Module
     torch::Tensor white_balance_values;
     torch::Tensor white_balance_values_reference;
 
-
-    MotionblurNet motion_blur         = nullptr;
     RollingShutterNet rolling_shutter = nullptr;
     VignetteNet vignette_net          = nullptr;
     CameraResponseNet camera_response = nullptr;

@@ -151,7 +151,6 @@ class NeuralPipeline
     // Loss stuff
     PretrainedVGG19Loss loss_vgg = nullptr;
     PSNR loss_psnr               = PSNR(0, 1);
-    SSIM loss_ssim               = SSIM(2, 1);
     LPIPS loss_lpips             = LPIPS("loss/traced_lpips.pt");
 
 };

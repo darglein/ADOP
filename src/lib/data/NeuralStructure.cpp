@@ -115,7 +115,7 @@ IntrinsicsModuleImpl::IntrinsicsModuleImpl(std::shared_ptr<SceneData> scene)
 
             for (int i = 0; i < params.size(); ++i)
             {
-                ptr[i] = params(i);
+                ptr[i] = params[i];
             }
         }
 

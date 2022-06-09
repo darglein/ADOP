@@ -140,7 +140,7 @@ SceneData::SceneData(std::string _scene_path)
     }
     else
     {
-         SAIGA_EXIT_ERROR("the pose file is required!");
+        SAIGA_EXIT_ERROR("the pose file is required!");
 
         // BinaryFile strm(scene_path + "/poses.dat", std::ios_base::in);
         // strm >> poses;
@@ -683,25 +683,6 @@ void SceneData::SortBlocksByRadius(int block_size)
     point_cloud.ReorderVertices(indices);
 }
 
-// Unprojection to normalized image space
-vec3 SceneCameraParams::ImageToNormalized(vec2 ip, float z)
-{
-    vec3 np;
-    if (camera_model_type == CameraModel::PINHOLE_DISTORTION)
-    {
-        vec2 ip2 = K.unproject2(ip);
-        ip2      = undistortPointGN(ip2, ip2, distortion);
-
-        np = vec3(ip2(0) * z, ip2(1) * z, z);
-    }
-    else
-    {
-        SAIGA_EXIT_ERROR("sdlf");
-    }
-    return np;
-}
-
-
 std::pair<vec2, float> SceneCameraParams::NormalizedToImage(vec3 p)
 {
     vec2 ip;
@@ -725,6 +706,10 @@ std::pair<vec2, float> SceneCameraParams::NormalizedToImage(vec3 p)
         vec2 ipz = vec2(p(0) / p(2), p(1) / p(2));
         vec2 np  = distortNormalizedPoint(ipz, distortion);
         ip       = K.normalizedToImage(np);
+    }
+    else
+    {
+        throw std::runtime_error("not implemented");
     }
     return {ip, z};
 }
@@ -790,147 +775,4 @@ SceneData::SceneData(int w, int h, IntrinsicsPinholef K)
     cam.h = h;
     cam.K = K;
     scene_cameras.push_back(cam);
-}
-
-
-void SceneDatasetParams::Params(Saiga::SimpleIni* ini, CLI::App* app)
-{
-    SAIGA_PARAM(file_model);
-    SAIGA_PARAM(image_dir);
-    SAIGA_PARAM(mask_dir);
-    SAIGA_PARAM_LIST(camera_files, ' ');
-
-    SAIGA_PARAM(file_point_cloud);
-    SAIGA_PARAM(file_point_cloud_compressed);
-
-
-    int camera_type_int = (int)camera_model;
-    SAIGA_PARAM(camera_type_int);
-    camera_model = (CameraModel)camera_type_int;
-
-    SAIGA_PARAM(znear);
-    SAIGA_PARAM(zfar);
-    SAIGA_PARAM(render_scale);
-    SAIGA_PARAM(scene_exposure_value);
-
-
-    {
-        std::vector<std::string> up_vector = split(array_to_string(this->scene_up_vector), ' ');
-        SAIGA_PARAM_LIST(up_vector, ' ');
-        SAIGA_ASSERT(up_vector.size() == 3);
-        for (int i = 0; i < 3; ++i)
-        {
-            double d           = to_double(up_vector[i]);
-            scene_up_vector(i) = d;
-        }
-    }
-}
-
-
-void SceneCameraParams::Params(Saiga::SimpleIni* ini, CLI::App* app)
-{
-    SAIGA_PARAM(w);
-    SAIGA_PARAM(h);
-
-    auto vector2string = [](auto vector)
-    {
-        std::stringstream sstrm;
-        sstrm << std::setprecision(15) << std::scientific;
-        for (unsigned int i = 0; i < vector.size(); ++i)
-        {
-            sstrm << vector[i];
-            if (i < vector.size() - 1) sstrm << " ";
-        }
-        return sstrm.str();
-    };
-
-
-
-    {
-        std::vector<std::string> K = split(vector2string(this->K.cast<double>().coeffs()), ' ');
-        SAIGA_PARAM_LIST_COMMENT(K, ' ', "# fx fy cx cy s");
-        SAIGA_ASSERT(K.size() == 5);
-
-        Vector<float, 5> K_coeffs;
-        for (int i = 0; i < 5; ++i)
-        {
-            double d    = to_double(K[i]);
-            K_coeffs(i) = d;
-        }
-        this->K = IntrinsicsPinholef(K_coeffs);
-    }
-
-    {
-        std::vector<std::string> distortion = split(vector2string(this->distortion.cast<double>().Coeffs()), ' ');
-        SAIGA_PARAM_LIST_COMMENT(distortion, ' ', "# 8 paramter distortion model. see distortion.h");
-
-        SAIGA_ASSERT(distortion.size() == 8);
-
-
-        Vector<float, 8> coeffs;
-        for (int i = 0; i < 8; ++i)
-        {
-            double d  = to_double(distortion[i]);
-            coeffs(i) = d;
-        }
-        this->distortion = Distortionf(coeffs);
-    }
-
-
-    {
-        ocam.h = h;
-        ocam.w = w;
-
-        {
-            std::vector<std::string> op = split(vector2string(this->ocam.cast<double>().AffineParams()), ' ');
-            SAIGA_PARAM_LIST_COMMENT(op, ' ', "# c d e cx cy");
-            SAIGA_ASSERT(op.size() == 5);
-
-            Vector<double, 5> a_coeffs;
-            for (int i = 0; i < 5; ++i)
-            {
-                double d    = to_double(op[i]);
-                a_coeffs(i) = d;
-            }
-            this->ocam.SetAffineParams(a_coeffs);
-        }
-        {
-            std::vector<std::string> poly_world2cam =
-                split(vector2string(this->ocam.cast<double>().poly_world2cam), ' ');
-            SAIGA_PARAM_LIST(poly_world2cam, ' ');
-
-            std::vector<double> a_coeffs;
-            for (int i = 0; i < poly_world2cam.size(); ++i)
-            {
-                double d = to_double(poly_world2cam[i]);
-                a_coeffs.push_back(d);
-            }
-            this->ocam.SetWorld2Cam(a_coeffs);
-        }
-
-        {
-            std::vector<std::string> poly_cam2world =
-                split(vector2string(this->ocam.cast<double>().poly_cam2world), ' ');
-            SAIGA_PARAM_LIST(poly_cam2world, ' ');
-
-            std::vector<double> a_coeffs;
-            for (int i = 0; i < poly_cam2world.size(); ++i)
-            {
-                double d = to_double(poly_cam2world[i]);
-                a_coeffs.push_back(d);
-            }
-            this->ocam.SetCam2World(a_coeffs);
-        }
-
-        SAIGA_PARAM(ocam_cutoff);
-    }
-
-
-    std::cout << "  Image Size " << w << "x" << h << std::endl;
-    std::cout << "  Aspect     " << float(w) / h << std::endl;
-    std::cout << "  K          " << K << std::endl;
-    std::cout << "  ocam       " << ocam << std::endl;
-    std::cout << "  ocam cut   " << ocam_cutoff << std::endl;
-    std::cout << "  normalized center " << (vec2(K.cx / w, K.cy / h) - vec2(0.5, 0.5)).transpose() << std::endl;
-    std::cout << "  dist       " << distortion << std::endl;
 }

@@ -211,42 +211,6 @@ torch::Tensor RollingShutterNetImpl::forward(torch::Tensor x, torch::Tensor fram
     return x;
 }
 
-
-MotionblurNetImpl::MotionblurNetImpl(int frames, int radius, float initial_blur)
-{
-    padding = radius;
-
-    blur_values = torch::full({(long)frames, 1L, 1L, 1L}, initial_blur, torch::TensorOptions().dtype(torch::kFloat32));
-    register_parameter("blur_values", blur_values);
-
-    float sigma  = 5;
-    kernel_raw_x = FilterTensor(gaussianBlurKernel1d(radius, sigma));
-    kernel_raw_y = FilterTensor(gaussianBlurKernel1d(radius, sigma).transpose().eval());
-    register_buffer("kernel_raw_x", kernel_raw_x);
-    register_buffer("kernel_raw_y", kernel_raw_y);
-
-    ApplyConstraints();
-}
-torch::Tensor MotionblurNetImpl::forward(torch::Tensor x, torch::Tensor frame_index, torch::Tensor scale)
-{
-    SAIGA_ASSERT(x.dim() == 4);
-
-    auto kernel_x = kernel_raw_x.repeat({x.size(1), 1, 1, 1});
-    auto kernel_y = kernel_raw_y.repeat({x.size(1), 1, 1, 1});
-
-    auto padded_x = torch::replication_pad2d(x, {padding, padding, padding, padding});
-
-    auto tmp       = torch::conv2d(padded_x, kernel_x, {}, 1, at::IntArrayRef(0), 1, padded_x.size(1));
-    auto blurred_x = torch::conv2d(tmp, kernel_y, {}, 1, at::IntArrayRef(0), 1, padded_x.size(1));
-
-    SAIGA_ASSERT(x.sizes() == blurred_x.sizes());
-
-
-    auto blur_factor = torch::index_select(blur_values, 0, frame_index.view(-1));
-    blur_factor      = torch::clamp(blur_factor * scale, 0, 1);
-    return x * (1 - blur_factor) + blurred_x * blur_factor;
-}
-
 NeuralCameraImpl::NeuralCameraImpl(ivec2 image_size, NeuralCameraParams params, int frames,
                                    std::vector<float> initial_exposure, std::vector<vec3> initial_wb)
     : params(params)
@@ -256,12 +220,6 @@ NeuralCameraImpl::NeuralCameraImpl(ivec2 image_size, NeuralCameraParams params, 
         camera_response =
             CameraResponseNet(params.response_params, 3, params.response_gamma, params.response_leak_factor);
         register_module("camera_response", camera_response);
-    }
-
-    if (params.enable_motion_blur)
-    {
-        motion_blur = MotionblurNet(frames, 20, 0);
-        register_module("motion_blur", motion_blur);
     }
 
     if (params.enable_rolling_shutter)
@@ -372,11 +330,6 @@ torch::Tensor NeuralCameraImpl::forward(torch::Tensor x, torch::Tensor frame_ind
         x = rolling_shutter->forward(x, frame_index, uv);
     }
 
-    if (motion_blur && frame_index.defined())
-    {
-        SAIGA_ASSERT(scale.defined());
-        x = motion_blur->forward(x, frame_index, scale);
-    }
 
     return x;
 }
@@ -400,7 +353,6 @@ void NeuralCameraImpl::ApplyConstraints()
 {
     if (camera_response) camera_response->ApplyConstraints();
     if (vignette_net) vignette_net->ApplyConstraints();
-    if (motion_blur) motion_blur->ApplyConstraints();
     if (rolling_shutter) rolling_shutter->ApplyConstraints();
     torch::NoGradGuard ngg;
     if (exposures_values.defined())
@@ -429,12 +381,6 @@ void NeuralCameraImpl::LoadCheckpoint(const std::string& checkpoint_prefix)
     {
         std::cout << "Load Checkpoint response" << std::endl;
         torch::load(camera_response, checkpoint_prefix + "response.pth");
-    }
-
-    if (motion_blur && std::filesystem::exists(checkpoint_prefix + "mb.pth"))
-    {
-        std::cout << "Load Checkpoint motion blur" << std::endl;
-        torch::load(motion_blur, checkpoint_prefix + "mb.pth");
     }
 
     if (white_balance_values.defined() && std::filesystem::exists(checkpoint_prefix + "wb.pth"))
@@ -544,17 +490,5 @@ void NeuralCameraImpl::SaveCheckpoint(const std::string& checkpoint_prefix)
             file << std::setprecision(5) << std::setw(10) << ex << "\n";
         }
         torch::save(exposures_values, checkpoint_prefix + "ex.pth");
-    }
-    if (motion_blur)
-    {
-        auto ex_cpu = motion_blur->blur_values.cpu();
-        std::ofstream file(checkpoint_prefix + "mb.txt");
-        for (int i = 0; i < ex_cpu.size(0); ++i)
-        {
-            float ex;
-            ex = ex_cpu[i][0][0][0].item().toFloat();
-            file << std::setprecision(5) << std::setw(10) << ex << "\n";
-        }
-        torch::save(motion_blur, checkpoint_prefix + "mb.pth");
     }
 }

@@ -39,9 +39,6 @@ NeuralPipeline::NeuralPipeline(std::shared_ptr<CombinedParams> _params) : params
         loss_lpips.module.eval();
         loss_lpips.module.to(device);
 
-        loss_ssim->eval();
-        loss_ssim->to(device);
-
 
         if (!params->optimizer_params.fix_render_network)
         {
@@ -331,7 +328,6 @@ ForwardResult NeuralPipeline::Forward(NeuralScene& scene, std::vector<NeuralTrai
         auto i                   = x.clamp(0, 1);
         auto t                   = target.clamp(0, 1);
         fr.float_loss.loss_psnr  = loss_psnr->forward(i, t).item().toFloat();
-        fr.float_loss.loss_ssim  = loss_ssim->forward(i, t).item().toFloat();
         fr.float_loss.loss_lpips = loss_lpips.forward(i, t).item().toFloat();
     }
 
