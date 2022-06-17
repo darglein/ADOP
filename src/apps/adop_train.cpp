@@ -556,7 +556,7 @@ class NeuralTrainer
                 for (int i = 0; i < result.image_ids.size(); ++i)
                 {
                     // In average only write 10 images
-                    if (Random::sampleBool(std::min(1.0, 2.0 / loader_size)))
+                    if (Random::sampleBool(std::min(1.0, 10.0 / loader_size)))
                     {
                         auto err = ImageTransformation::ErrorImage(result.outputs[i], result.targets[i]);
                         TemplatedImage<ucvec3> combined(err.h, err.w + result.outputs[i].w);
