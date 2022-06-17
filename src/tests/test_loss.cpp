@@ -27,8 +27,9 @@ struct LossTest
         {
             for (int j : o.colRange())
             {
-                o(i, j) = ucvec3::Random();
-                t(i, j) = ucvec3::Random();
+
+                o(i, j) = Saiga::Random::MatrixUniform<ucvec3>(0, 255);
+                t(i, j) = Saiga::Random::MatrixUniform<ucvec3>(0, 255);
             }
         }
         output = ImageViewToTensor(o.getImageView()).unsqueeze(0);
