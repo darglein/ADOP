@@ -42,6 +42,11 @@ SceneViewer::SceneViewer(std::shared_ptr<SceneData> scene) : scene(scene)
     scene_camera.global_up           = scene->dataset_params.scene_up_vector;
     scene_camera.recompute_on_resize = false;
 
+    scene_camera.movementSpeed = 5;
+//    scene_camera.mode0 = CameraControlMode::ROTATE_FIRST_PERSON_FIX_UP_VECTOR;
+    scene_camera.mode0 = CameraControlMode::ROTATE_FIRST_PERSON;
+    scene_camera.mode1 = CameraControlMode::ROTATE_AROUND_POINT_FIX_UP_VECTOR;
+
     scene_camera.enableInput();
 
     {
