@@ -10,8 +10,6 @@ conda update -n base -c defaults conda
 conda create -y -n adop python=3.9.7
 conda activate adop
 
-exit
-
 conda install -y ncurses=6.3 -c conda-forge
 #conda install -y cudnn=8.2.1.32 cudatoolkit-dev=11.3 cudatoolkit=11.3 -c nvidia -c conda-forge
 conda install -y cudnn=8.2.1.32 cudatoolkit-dev=11.4 cudatoolkit=11.4 -c nvidia -c conda-forge
