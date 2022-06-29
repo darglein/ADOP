@@ -35,22 +35,6 @@ endif ()
 list(APPEND MY_CUDA_FLAGS "--expt-relaxed-constexpr")
 list(APPEND MY_CUDA_FLAGS "-lineinfo")
 
-include(select_compute_arch)
-CUDA_SELECT_NVCC_ARCH_FLAGS(CUDA_ARCH_FLAGS Auto)
-
-target_compile_options(
-        ${TARGET_NAME} PUBLIC
-        $<$<COMPILE_LANGUAGE:CUDA>:${MY_CUDA_FLAGS}>
-)
-
-while (CUDA_ARCH_FLAGS)
-    list(POP_FRONT CUDA_ARCH_FLAGS A B)
-    target_compile_options(
-            ${TARGET_NAME} PRIVATE
-            "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:${A} ${B}>"
-    )
-endwhile ()
-
 
 #############  source #############
 
