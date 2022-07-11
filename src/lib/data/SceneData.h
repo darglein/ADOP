@@ -316,14 +316,14 @@ class SceneData
     std::string scene_name;
 
     std::string scene_path;
-    std::vector<FrameData> frames;
+    std::vector<::FrameData> frames;
 
     void Save(bool extended_save = false);
     static void SavePoses(std::vector<SE3> poses, std::string file);
 
     TemplatedImage<ucvec3> CPURenderFrame(int id, float scale);
 
-    FrameData Frame(int id) { return frames[id]; }
+    ::FrameData Frame(int id) { return frames[id]; }
 
     std::vector<int> Indices()
     {

@@ -39,10 +39,11 @@ class SceneDataTrainSampler
 
    public:
     int inner_batch_size = 1;
-    ivec2 image_size_crop;
-    ivec2 image_size_input;
 
-    TemplatedImage<vec2> uv_target;
+    // different for each camera
+    std::vector<ivec2> image_size_crop;
+    std::vector<ivec2> image_size_input;
+    std::vector<TemplatedImage<vec2>> uv_target;
 
     std::shared_ptr<SceneData> scene;
     std::vector<int> indices;

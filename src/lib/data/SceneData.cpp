@@ -286,14 +286,11 @@ void SceneData::Save(bool extended_save)
 
     {
         std::vector<Sophus::SE3d> posesd;
-
-        std::ofstream strm2(file_pose, std::ios_base::out);
         for (auto f : frames)
         {
             SE3 p = f.pose;
             posesd.push_back(p);
         }
-
         SavePoses(posesd, file_pose);
 
         if (extended_save)

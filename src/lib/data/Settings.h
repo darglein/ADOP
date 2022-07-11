@@ -32,9 +32,9 @@ struct RenderParams : public ParamsBase
 
     float dropout                   = 0.25;
     float depth_accept              = 0.01;
-    bool ghost_gradients            = true;
+    bool ghost_gradients            = false;
     float drop_out_radius_threshold = 0.6;
-    bool drop_out_points_by_radius  = false;
+    bool drop_out_points_by_radius  = true;
 
     // Writes the weight into the 4-channel output texture
     bool debug_weight_color              = false;
@@ -43,7 +43,7 @@ struct RenderParams : public ParamsBase
     bool debug_print_num_rendered_points = false;
 
     float distortion_gradient_factor = 0.005;
-    float K_gradient_factor          = 1;
+    float K_gradient_factor          = 0.5;
 
     // == parameters set by the system ==
     int num_texture_channels           = -1;
@@ -173,17 +173,17 @@ struct OptimizerParams : public ParamsBase
     double lr_environment_map  = 0.02;   // log_texture: 0.0025
 
     // structure
-    double lr_points     = 0.001;
-    double lr_poses      = 0.005;
-    double lr_intrinsics = 0.01;
+    double lr_points     = 0.005;
+    double lr_poses      = 0.01;
+    double lr_intrinsics = 1;
 
     // camera
-    double lr_vignette         = 1e-5;  // sgd: 5e-7, adam 1e-4
+    double lr_vignette         = 5e-6;  // sgd: 5e-7, adam 1e-4
     double lr_response         = 0.001;
     double response_smoothness = 1;
     double lr_wb               = 5e-4;
-    double lr_exposure         = 5e-4;  // sgd 5e-4, adam 1e-3
-    double lr_motion_blur      = 0.005000;
+    double lr_exposure         = 0.0005;  // sgd 5e-4, adam 1e-3
+    double lr_motion_blur      = 0.005;
     double lr_rolling_shutter  = 2e-6;
 };
 
@@ -224,7 +224,7 @@ struct PipelineParams : public ParamsBase
     int env_map_w               = 1024;
     int env_map_h               = 512;
     int env_map_channels        = 4;
-    int num_texture_channels    = 8;
+    int num_texture_channels    = 4;
 
     // Concats the mask/env_map along the channel dimension
     // This increases the number of input channels of the network
@@ -310,7 +310,7 @@ struct MyTrainParams : public TrainParams
     bool reduced_check_point        = false;
     bool write_images_at_checkpoint = true;
     bool write_test_images          = false;
-    bool texture_random_init        = false;
+    bool texture_random_init        = true;
     bool texture_color_init         = false;
 
     bool optimize_eval_camera = false;
@@ -326,14 +326,14 @@ struct MyTrainParams : public TrainParams
     // in epoch 1 the lr is x
     // in epoch <max_epoch> the lr is x / 10
     float lr_decay_factor = 0.75;
-    int lr_decay_patience = 10;
+    int lr_decay_patience = 15;
 
 
 
     // In the first few iterations we do not optimize camera parameters
     // such as vignetting and CRF because the solution is still too far of a reasonable result
-    int lock_camera_params_epochs    = 50;
-    int lock_structure_params_epochs = 50;
+    int lock_camera_params_epochs    = 25;
+    int lock_structure_params_epochs = 25;
 };
 
 

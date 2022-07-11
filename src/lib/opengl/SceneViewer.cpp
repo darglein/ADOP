@@ -43,7 +43,7 @@ SceneViewer::SceneViewer(std::shared_ptr<SceneData> scene) : scene(scene)
     scene_camera.recompute_on_resize = false;
 
     scene_camera.movementSpeed = 5;
-//    scene_camera.mode0 = CameraControlMode::ROTATE_FIRST_PERSON_FIX_UP_VECTOR;
+    //    scene_camera.mode0 = CameraControlMode::ROTATE_FIRST_PERSON_FIX_UP_VECTOR;
     scene_camera.mode0 = CameraControlMode::ROTATE_FIRST_PERSON;
     scene_camera.mode1 = CameraControlMode::ROTATE_AROUND_POINT_FIX_UP_VECTOR;
 
@@ -311,6 +311,19 @@ void SceneViewer::imgui()
     {
         scene->Save();
     }
+
+    if (ImGui::Button("save poses to poses_quatxyzw_transxyz.txt"))
+    {
+        std::vector<Sophus::SE3d> posesd;
+        for (auto f : scene->frames)
+        {
+            SE3 p = f.pose;
+            posesd.push_back(p);
+        }
+        auto file_pose = scene->scene_path + "/poses_quatxyzw_transxyz.txt";
+        SceneData::SavePoses(posesd, file_pose);
+    }
+
 
     if (ImGui::Button("save points ply"))
     {

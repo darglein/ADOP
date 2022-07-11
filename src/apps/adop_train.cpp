@@ -129,14 +129,21 @@ class TrainScene
             test_cropped_samplers.push_back(CroppedSampler(scene, test_indices));
             test_samplers.push_back(FullSampler(scene, test_indices));
 
+
+
             if (params->train_params.train_mask_border > 0)
             {
-                int w              = test_samplers.back().image_size_crop(0);
-                int h              = test_samplers.back().image_size_crop(1);
-                torch::Tensor mask = CropMask(h, w, params->train_params.train_mask_border).to(device);
-                TensorToImage<unsigned char>(mask).save(full_experiment_dir + "/eval_mask_" + scene->scene_name +
-                                                        ".png");
-                scene_data.eval_crop_mask = (mask);
+                int i = 0;
+                for (auto dims : test_samplers.back().image_size_crop)
+                {
+                    int w              = dims.x();
+                    int h              = dims.y();
+                    torch::Tensor mask = CropMask(h, w, params->train_params.train_mask_border).to(device);
+                    TensorToImage<unsigned char>(mask).save(full_experiment_dir + "/eval_mask_" + scene->scene_name +
+                                                            "_" + std::to_string(i) + ".png");
+                    scene_data.eval_crop_mask.push_back(mask);
+                    ++i;
+                }
             }
 
             scene->AddIntrinsicsNoise(params->train_params.noise_intr_k, params->train_params.noise_intr_d);
@@ -285,7 +292,9 @@ class TrainScene
     struct PerSceneData
     {
         std::shared_ptr<NeuralScene> scene;
-        torch::Tensor eval_crop_mask;
+
+        // for each camera one
+        std::vector<torch::Tensor> eval_crop_mask;
 
         // all image indices that are not used during training.
         // -> we interpolate the metadata for them
@@ -542,13 +551,15 @@ class NeuralTrainer
         Saiga::ProgressBar bar(std::cout, "Eval  " + std::to_string(epoch_id) + " |", loader_size, 30, false, 5000);
         for (std::vector<NeuralTrainData>& batch : *loader)
         {
+            SAIGA_ASSERT(batch.size() == 1);
             int scene_id_of_batch = batch.front()->scene_id;
             auto& scene_data      = train_scenes->data[scene_id_of_batch];
             train_scenes->Load(device, scene_id_of_batch);
             train_scenes->Train(epoch_id, false);
+            int camera_id = batch.front()->img.camera_index;
 
             SAIGA_ASSERT(!torch::GradMode::is_enabled());
-            auto result = pipeline->Forward(*scene_data.scene, batch, scene_data.eval_crop_mask, true,
+            auto result = pipeline->Forward(*scene_data.scene, batch, scene_data.eval_crop_mask[camera_id], true,
                                             write_test_images | params->train_params.write_images_at_checkpoint);
 
             if (params->train_params.write_images_at_checkpoint)

@@ -266,7 +266,6 @@ void NeuralScene::LoadCheckpoint(const std::string& checkpoint_dir)
         SAIGA_ASSERT(point_cloud_cuda->t_index.dtype() == torch::kInt32);
 
         SAIGA_ASSERT(point_cloud_cuda->t_position.size(0) == point_cloud_cuda->t_index.size(0));
-        SAIGA_ASSERT(point_cloud_cuda->t_position.size(0) == point_cloud_cuda->t_normal.size(0));
     }
 
     if (texture && std::filesystem::exists(checkpoint_prefix + "texture.pth"))
@@ -333,6 +332,9 @@ void NeuralScene::SaveCheckpoint(const std::string& checkpoint_dir, bool reduced
     {
         torch::save(poses, checkpoint_prefix + "poses.pth");
         torch::save(intrinsics, checkpoint_prefix + "intrinsics.pth");
+
+        auto all_poses = poses->Download();
+        SceneData::SavePoses(all_poses, checkpoint_prefix + "poses.txt");
     }
 
     camera->SaveCheckpoint(checkpoint_prefix);
