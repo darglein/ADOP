@@ -24,7 +24,7 @@ reconstruction is refined during training. The efficient one-pixel point
 rasterization allows us to use arbitrary camera models and display scenes with
 well over 100M points in real time.
 
-[[Paper]](https://arxiv.org/abs/2110.06635) [[Youtube]](https://www.youtube.com/watch?v=WJRyu1JUtVw) [[Supplementary Material]](https://zenodo.org/record/5602606)
+[[Paper]](https://arxiv.org/abs/2110.06635) [[Youtube]](https://www.youtube.com/watch?v=WJRyu1JUtVw) [[Supplementary Material]](https://zenodo.org/record/6759811)
 
 <a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
 
@@ -38,8 +38,8 @@ well over 100M points in real time.
 ## Running ADOP on pretrained models
 
 After a successful compilation, the best way to get started is to run `adop_viewer` on the *tanks and temples* scenes using our pretrained models.
-First, download the [scenes](https://zenodo.org/record/5602606/files/scenes.zip?download=1) and extract them into `ADOP/scenes`. 
-Now, download the [model checkpoints](https://zenodo.org/record/5602606/files/experiments.zip?download=1) and extract them into `ADOP/experiments`.
+First, download the [scenes](https://zenodo.org/record/6759811/files/scenes.zip?download=1) and extract them into `ADOP/scenes`. 
+Now, download the [model checkpoints](https://zenodo.org/record/6759811/files/experiments.zip?download=1) and extract them into `ADOP/experiments`.
 Your folder structure should look like this:
 ```shell
 ADOP/
@@ -193,11 +193,11 @@ and the [Omnidirectional](https://sites.google.com/site/scarabotix/ocamcalib-omn
 
 ## Supplementary Material
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5602606.svg)](https://doi.org/10.5281/zenodo.5602606)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6759811.svg)](https://doi.org/10.5281/zenodo.6759811)
 
 The supplementary material is published on Zenodo:
 
-https://zenodo.org/record/5602606
+https://zenodo.org/record/6759811
 
 This directory includes:
 
