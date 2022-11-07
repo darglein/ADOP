@@ -69,6 +69,10 @@ class TrainScene
         for (int i = 0; i < scene_dirs.size(); ++i)
         {
             auto scene = std::make_shared<SceneData>(params->train_params.scene_base_dir + scene_dirs[i]);
+            if (params->train_params.override_image_dir != "")
+            {
+                scene->dataset_params.image_dir = params->train_params.override_image_dir;
+            }
 
             // 1.  Separate indices
             auto all_indices                   = scene->Indices();
@@ -645,27 +649,54 @@ class NeuralTrainer
     }
 };
 
-int main(int argc, char* argv[])
+
+CombinedParams LoadParamsHybrid(int argc, const char** argv)
+{
+    CLI::App app{"Train ADOP on your Scenes", "adop_train"};
+
+    std::string config_file;
+    app.add_option("--config", config_file)->required();
+    auto params = CombinedParams();
+    params.Load(app);
+
+
+    try
+    {
+        app.parse(argc, argv);
+    }
+    catch (CLI::ParseError& error)
+    {
+        std::cout << "Parsing failed!" << std::endl;
+        std::cout << error.what() << std::endl;
+        CHECK(false);
+
+    }
+
+    std::cout << "Loading Config File " << config_file << std::endl;
+    params.Load(config_file);
+    app.parse(argc, argv);
+
+    return params;
+}
+
+
+int main(int argc, const char* argv[])
 {
     std::cout << "Git ref: " << GIT_SHA1 << std::endl;
 
-    std::string config_file;
-    CLI::App app{"Train ADOP on your Scenes", "adop_train"};
-    app.add_option("--config", config_file)->required();
-    CLI11_PARSE(app, argc, argv);
+    //    std::string config_file;
+    //    CLI::App app{"Train ADOP on your Scenes", "adop_train"};
+    //    app.add_option("--config", config_file)->required();
+    //    CLI11_PARSE(app, argc, argv);
 
-    if (argc <= 1)
-    {
-        std::cout << "usage: ./Train <train_config_file>" << std::endl;
-        return 0;
-    }
+    params = std::make_shared<CombinedParams>(LoadParamsHybrid(argc, argv));
 
 
-    console << "Train Config: " << config_file << std::endl;
-    SAIGA_ASSERT(std::filesystem::exists(config_file));
+    //    console << "Train Config: " << config_file << std::endl;
+    //    SAIGA_ASSERT(std::filesystem::exists(config_file));
 
 
-    params = std::make_shared<CombinedParams>(config_file);
+    //    params = std::make_shared<CombinedParams>(config_file);
     if (params->train_params.random_seed == 0)
     {
         std::cout << "generating random seed..." << std::endl;

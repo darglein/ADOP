@@ -259,6 +259,7 @@ struct MyTrainParams : public TrainParams
         SAIGA_PARAM(experiment_dir);
         SAIGA_PARAM(scene_base_dir);
         SAIGA_PARAM_LIST(scene_names, ',');
+        SAIGA_PARAM(override_image_dir);
 
         SAIGA_PARAM(loss_vgg);
         SAIGA_PARAM(loss_l1);
@@ -323,7 +324,10 @@ struct MyTrainParams : public TrainParams
     std::string scene_base_dir           = "scenes/";
     std::vector<std::string> scene_names = {"boat"};
 
-    // in epoch 1 the lr is x
+    // if this is set, the image dir of the datasets are overwritten by this path
+    std::string override_image_dir = "";
+
+        // in epoch 1 the lr is x
     // in epoch <max_epoch> the lr is x / 10
     float lr_decay_factor = 0.75;
     int lr_decay_patience = 15;
@@ -366,6 +370,27 @@ struct CombinedParams
         camera_params.Save(file);
         net_params.Save(file);
     }
+
+    void Load(std::string file)
+    {
+        train_params.Load(file);
+        render_params.Load(file);
+        pipeline_params.Load(file);
+        optimizer_params.Load(file);
+        camera_params.Load(file);
+        net_params.Load(file);
+    }
+
+    void Load(CLI::App& app)
+    {
+        train_params.Load(app);
+        render_params.Load(app);
+        pipeline_params.Load(app);
+        optimizer_params.Load(app);
+        camera_params.Load(app);
+        net_params.Load(app);
+    }
+
 
     void Check();
     void imgui();
