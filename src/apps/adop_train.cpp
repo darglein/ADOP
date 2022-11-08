@@ -248,10 +248,10 @@ class TrainScene
         int batch_size  = train ? params->train_params.batch_size : 1;
         int num_workers = train ? params->train_params.num_workers_train : params->train_params.num_workers_eval;
         bool shuffle    = train ? params->train_params.shuffle_train_indices : false;
-        auto options    = torch::data::DataLoaderOptions().batch_size(batch_size).drop_last(true).workers(num_workers);
+        auto options    = torch::data::DataLoaderOptions().batch_size(batch_size).drop_last(false).workers(num_workers);
 
         auto sampler = torch::MultiDatasetSampler(sizes, options.batch_size(), shuffle);
-        int n        = sampler.Size();
+        int n        = sampler.NumImages();
         return std::pair(
             torch::data::make_data_loader(TorchSingleSceneDataset(train_cropped_samplers), std::move(sampler), options),
             n);
@@ -484,10 +484,10 @@ class NeuralTrainer
         {
             Saiga::ProgressBar bar(
                 std::cout, name + " " + std::to_string(epoch_id) + " |",
-                loader_size * params->train_params.batch_size * params->train_params.inner_batch_size, 30, false, 5000);
+                loader_size * params->train_params.inner_batch_size, 30, false, 5000);
             for (std::vector<NeuralTrainData>& batch : *loader)
             {
-                SAIGA_ASSERT(batch.size() == params->train_params.batch_size * params->train_params.inner_batch_size);
+                SAIGA_ASSERT(batch.size() <= params->train_params.batch_size * params->train_params.inner_batch_size);
 
                 int scene_id_of_batch = batch.front()->scene_id;
                 auto& scene_data      = train_scenes->data[scene_id_of_batch];
@@ -504,7 +504,7 @@ class NeuralTrainer
 
                 auto result = pipeline->Forward(*scene_data.scene, batch, train_crop_mask, false);
                 scene_data.epoch_loss += result.float_loss;
-                epoch_loss += result.float_loss.loss_float;
+                epoch_loss += result.float_loss.loss_float * batch.size();
                 num_images += batch.size();
 
                 result.loss.backward();
@@ -515,13 +515,12 @@ class NeuralTrainer
                 }
                 scene_data.scene->OptimizerStep(epoch_id, structure_only);
                 bar.addProgress(batch.size());
-                bar.SetPostfix(" Cur=" + std::to_string(result.float_loss.loss_float) + " Avg=" +
-                               std::to_string(epoch_loss / num_images * params->train_params.batch_size *
-                                              params->train_params.inner_batch_size));
+                bar.SetPostfix(" Cur=" + std::to_string(result.float_loss.loss_float) + " " + std::to_string(num_images) + " Avg=" +
+                               std::to_string(epoch_loss / num_images));
             }
         }
         train_scenes->Unload();
-        return epoch_loss;
+        return epoch_loss / num_images;
     }
 
     void EvalEpoch(int epoch_id, bool save_checkpoint)
@@ -669,7 +668,6 @@ CombinedParams LoadParamsHybrid(int argc, const char** argv)
         std::cout << "Parsing failed!" << std::endl;
         std::cout << error.what() << std::endl;
         CHECK(false);
-
     }
 
     std::cout << "Loading Config File " << config_file << std::endl;

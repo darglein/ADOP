@@ -281,7 +281,6 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
 torch::MultiDatasetSampler::MultiDatasetSampler(std::vector<uint64_t> _sizes, int batch_size, bool shuffle)
     : sizes(_sizes), batch_size(batch_size)
 {
-    int total_batches = 0;
     std::vector<std::vector<size_t>> indices;
     for (int i = 0; i < sizes.size(); ++i)
     {
@@ -294,10 +293,16 @@ torch::MultiDatasetSampler::MultiDatasetSampler(std::vector<uint64_t> _sizes, in
             std::shuffle(ind.begin(), ind.end(), Random::generator());
         }
 
-        s = Saiga::iAlignDown(s, batch_size);
-        ind.resize(s);
-        SAIGA_ASSERT(ind.size() % batch_size == 0);
-        total_batches += ind.size() / batch_size;
+        // s = Saiga::iAlignDown(s, batch_size);
+        // ind.resize(s);
+        // SAIGA_ASSERT(ind.size() % batch_size == 0);
+        // total_batches += ind.size() / batch_size;
+
+        for (int j = 0; j < s; j += batch_size)
+        {
+            auto combined_offset = j + combined_indices.size();
+            batch_offset_size.push_back({combined_offset, std::min<int>(batch_size, s - j)});
+        }
 
         for (auto j : ind)
         {
@@ -305,11 +310,9 @@ torch::MultiDatasetSampler::MultiDatasetSampler(std::vector<uint64_t> _sizes, in
         }
     }
 
-    batch_offsets.resize(total_batches);
-    std::iota(batch_offsets.begin(), batch_offsets.end(), 0);
     if (shuffle)
     {
-        std::shuffle(batch_offsets.begin(), batch_offsets.end(), Random::generator());
+        std::shuffle(batch_offset_size.begin(), batch_offset_size.end(), Random::generator());
     }
 }
 
@@ -317,15 +320,16 @@ torch::optional<std::vector<size_t>> torch::MultiDatasetSampler::next(size_t bat
 {
     SAIGA_ASSERT(this->batch_size == batch_size);
 
-    if (current_index >= batch_offsets.size()) return {};
+    if (current_index >= batch_offset_size.size()) return {};
 
-    auto bo = batch_offsets[current_index++];
+    auto [bo ,bs] = batch_offset_size[current_index];
+    current_index++;
 
     std::vector<size_t> result;
 
-    for (int i = 0; i < batch_size; ++i)
+    for (int i = 0; i < bs; ++i)
     {
-        auto [scene, image] = combined_indices[i + bo * batch_size];
+        auto [scene, image] = combined_indices[i + bo];
 
         size_t comb = (size_t(scene) << 32) | size_t(image);
         result.push_back(comb);

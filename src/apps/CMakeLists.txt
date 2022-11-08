@@ -15,6 +15,9 @@ endfunction()
 add_executable(colmap2adop colmap2adop.cpp)
 add_app(colmap2adop)
 
+add_executable(scannet2adop scannet2adop.cpp)
+add_app(scannet2adop)
+
 add_executable(preprocess_pointcloud preprocess_pointcloud.cpp)
 add_app(preprocess_pointcloud)
 
