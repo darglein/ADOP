@@ -16,7 +16,7 @@
 #include <ATen/AccumulateType.h>
 #include <ATen/ExpandUtils.h>
 #include <ATen/cuda/detail/IndexUtils.cuh>
-#include <THC/THCGeneral.h>
+// #include <THC/THCGeneral.h>
 
 HD inline thrust::pair<float, uint32_t> ExtractIndex(Packtype i)
 {

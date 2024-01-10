@@ -157,14 +157,6 @@ NeuralScene::NeuralScene(std::shared_ptr<SceneData> scene, std::shared_ptr<Combi
             g_cam_adam.emplace_back(camera->camera_response->parameters(), std::move(opt));
         }
 
-        if (params->camera_params.enable_motion_blur && !params->optimizer_params.fix_motion_blur)
-        {
-            std::cout << "optimizing motion blur with lr " << params->optimizer_params.lr_motion_blur << std::endl;
-            auto opt = std::make_unique<torch::optim::AdamOptions>(params->optimizer_params.lr_motion_blur);
-            std::vector<torch::Tensor> ts = camera->motion_blur->parameters();
-            g_cam_adam.emplace_back(ts, std::move(opt));
-        }
-
         if (params->camera_params.enable_white_balance && !params->optimizer_params.fix_wb)
         {
             std::cout << "optimizing white balance with lr " << params->optimizer_params.lr_wb << std::endl;
@@ -274,7 +266,6 @@ void NeuralScene::LoadCheckpoint(const std::string& checkpoint_dir)
         SAIGA_ASSERT(point_cloud_cuda->t_index.dtype() == torch::kInt32);
 
         SAIGA_ASSERT(point_cloud_cuda->t_position.size(0) == point_cloud_cuda->t_index.size(0));
-        SAIGA_ASSERT(point_cloud_cuda->t_position.size(0) == point_cloud_cuda->t_normal.size(0));
     }
 
     if (texture && std::filesystem::exists(checkpoint_prefix + "texture.pth"))
@@ -341,6 +332,9 @@ void NeuralScene::SaveCheckpoint(const std::string& checkpoint_dir, bool reduced
     {
         torch::save(poses, checkpoint_prefix + "poses.pth");
         torch::save(intrinsics, checkpoint_prefix + "intrinsics.pth");
+
+        auto all_poses = poses->Download();
+        SceneData::SavePoses(all_poses, checkpoint_prefix + "poses.txt");
     }
 
     camera->SaveCheckpoint(checkpoint_prefix);

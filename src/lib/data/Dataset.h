@@ -39,10 +39,11 @@ class SceneDataTrainSampler
 
    public:
     int inner_batch_size = 1;
-    ivec2 image_size_crop;
-    ivec2 image_size_input;
 
-    TemplatedImage<vec2> uv_target;
+    // different for each camera
+    std::vector<ivec2> image_size_crop;
+    std::vector<ivec2> image_size_input;
+    std::vector<TemplatedImage<vec2>> uv_target;
 
     std::shared_ptr<SceneData> scene;
     std::vector<int> indices;
@@ -80,11 +81,16 @@ class MultiDatasetSampler : public torch::data::samplers::Sampler<>
     /// Returns the current index of the `RandomSampler`.
     size_t index() const noexcept { return current_index; }
 
-    int Size() { return batch_offsets.size(); }
+    int Size() { return batch_offset_size.size(); }
+    int NumImages() { return combined_indices.size(); }
 
     size_t current_index = 0;
     std::vector<std::pair<int, int>> combined_indices;
-    std::vector<int> batch_offsets;
+
+    // a pointer into the array above
+    std::vector<std::pair<int, int>> batch_offset_size;
+
+
     std::vector<uint64_t> sizes;
     int batch_size;
 };

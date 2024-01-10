@@ -42,25 +42,25 @@ SceneDataTrainSampler::SceneDataTrainSampler(std::shared_ptr<SceneData> dataset,
       down_scale(down_scale),
       use_image_mask(use_image_mask)
 {
-    image_size_input = ivec2(dataset->scene_cameras.front().w, dataset->scene_cameras.front().h);
+    // image_size_input = ivec2(dataset->scene_cameras.front().w, dataset->scene_cameras.front().h);
     for (auto& cam : dataset->scene_cameras)
     {
         // all cameras must have the same image size
-        SAIGA_ASSERT(cam.w == image_size_input(0));
-        SAIGA_ASSERT(cam.h == image_size_input(1));
-    }
+        // SAIGA_ASSERT(cam.w == image_size_input(0));
+        // SAIGA_ASSERT(cam.h == image_size_input(1));
+        image_size_input.push_back({cam.w, cam.h});
 
-    if (down_scale)
-    {
-        SAIGA_ASSERT(crop_size(0) > 0);
-        image_size_crop = crop_size;
+        if (down_scale)
+        {
+            SAIGA_ASSERT(crop_size(0) > 0);
+            image_size_crop.push_back(crop_size);
+        }
+        else
+        {
+            image_size_crop.push_back({cam.w, cam.h});
+        }
+        uv_target.push_back(InitialUVImage(cam.h, cam.w));
     }
-    else
-    {
-        image_size_crop = image_size_input;
-    }
-
-    uv_target = InitialUVImage(image_size_input(1), image_size_input(0));
 }
 
 
@@ -115,6 +115,8 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
 
     long actual_index = indices[__index];
     const auto fd     = scene->Frame(actual_index);
+    int camera_id     = fd.camera_index;
+
 
     SAIGA_ASSERT(std::filesystem::exists(scene->dataset_params.image_dir + "/" + fd.target_file));
     Saiga::TemplatedImage<ucvec3> img_gt_large(scene->dataset_params.image_dir + "/" + fd.target_file);
@@ -134,8 +136,8 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
     std::vector<NeuralTrainData> result;
     result.reserve(inner_batch_size);
 
-    auto crops = RandomImageCrop(inner_batch_size, inner_sample_size, image_size_input, image_size_crop, prefere_border,
-                                 random_translation, min_max_zoom);
+    auto crops = RandomImageCrop(inner_batch_size, inner_sample_size, image_size_input[camera_id],
+                                 image_size_crop[camera_id], prefere_border, random_translation, min_max_zoom);
     SAIGA_ASSERT(crops.size() == inner_batch_size);
 
     for (int i = 0; i < inner_batch_size; ++i)
@@ -144,8 +146,8 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
 
         pd->img.crop_transform = IntrinsicsPinholef();
 
-        pd->img.h = image_size_crop(1);
-        pd->img.w = image_size_crop(0);
+        pd->img.h = image_size_crop[camera_id](1);
+        pd->img.w = image_size_crop[camera_id](0);
 
         float zoom = 1;
         if (down_scale)
@@ -153,8 +155,8 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
             pd->img.crop_transform = crops[i];
             zoom                   = pd->img.crop_transform.fx;
 
-            Saiga::TemplatedImage<ucvec3> gt_crop(image_size_crop.y(), image_size_crop.x());
-            Saiga::TemplatedImage<vec2> uv_crop(image_size_crop.y(), image_size_crop.x());
+            Saiga::TemplatedImage<ucvec3> gt_crop(image_size_crop[camera_id].y(), image_size_crop[camera_id].x());
+            Saiga::TemplatedImage<vec2> uv_crop(image_size_crop[camera_id].y(), image_size_crop[camera_id].x());
 
             gt_crop.makeZero();
             uv_crop.makeZero();
@@ -162,7 +164,7 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
             auto dst_2_src = pd->img.crop_transform.inverse();
 
             warpPerspective(img_gt_large.getImageView(), gt_crop.getImageView(), dst_2_src);
-            warpPerspective(uv_target.getImageView(), uv_crop.getImageView(), dst_2_src);
+            warpPerspective(uv_target[camera_id].getImageView(), uv_crop.getImageView(), dst_2_src);
 
             pd->target = ImageViewToTensor(gt_crop.getImageView());
             pd->uv     = ImageViewToTensor(uv_crop.getImageView());
@@ -186,7 +188,8 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
 
             if (use_image_mask)
             {
-                Saiga::TemplatedImage<unsigned char> mask_crop(image_size_crop.y(), image_size_crop.x());
+                Saiga::TemplatedImage<unsigned char> mask_crop(image_size_crop[camera_id].y(),
+                                                               image_size_crop[camera_id].x());
                 warpPerspective(img_mask_large.getImageView(), mask_crop.getImageView(), dst_2_src);
                 pd->target_mask = pd->target_mask * ImageViewToTensor(mask_crop.getImageView());
             }
@@ -196,7 +199,7 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
         else
         {
             pd->target = ImageViewToTensor(img_gt_large.getImageView());
-            pd->uv     = ImageViewToTensor(uv_target.getImageView());
+            pd->uv     = ImageViewToTensor(uv_target[camera_id].getImageView());
 
             TemplatedImage<unsigned char> mask(pd->img.h, pd->img.w);
             mask.getImageView().set(255);
@@ -278,7 +281,6 @@ std::vector<NeuralTrainData> SceneDataTrainSampler::Get(int __index)
 torch::MultiDatasetSampler::MultiDatasetSampler(std::vector<uint64_t> _sizes, int batch_size, bool shuffle)
     : sizes(_sizes), batch_size(batch_size)
 {
-    int total_batches = 0;
     std::vector<std::vector<size_t>> indices;
     for (int i = 0; i < sizes.size(); ++i)
     {
@@ -291,10 +293,16 @@ torch::MultiDatasetSampler::MultiDatasetSampler(std::vector<uint64_t> _sizes, in
             std::shuffle(ind.begin(), ind.end(), Random::generator());
         }
 
-        s = Saiga::iAlignDown(s, batch_size);
-        ind.resize(s);
-        SAIGA_ASSERT(ind.size() % batch_size == 0);
-        total_batches += ind.size() / batch_size;
+        // s = Saiga::iAlignDown(s, batch_size);
+        // ind.resize(s);
+        // SAIGA_ASSERT(ind.size() % batch_size == 0);
+        // total_batches += ind.size() / batch_size;
+
+        for (int j = 0; j < s; j += batch_size)
+        {
+            auto combined_offset = j + combined_indices.size();
+            batch_offset_size.push_back({combined_offset, std::min<int>(batch_size, s - j)});
+        }
 
         for (auto j : ind)
         {
@@ -302,11 +310,9 @@ torch::MultiDatasetSampler::MultiDatasetSampler(std::vector<uint64_t> _sizes, in
         }
     }
 
-    batch_offsets.resize(total_batches);
-    std::iota(batch_offsets.begin(), batch_offsets.end(), 0);
     if (shuffle)
     {
-        std::shuffle(batch_offsets.begin(), batch_offsets.end(), Random::generator());
+        std::shuffle(batch_offset_size.begin(), batch_offset_size.end(), Random::generator());
     }
 }
 
@@ -314,15 +320,16 @@ torch::optional<std::vector<size_t>> torch::MultiDatasetSampler::next(size_t bat
 {
     SAIGA_ASSERT(this->batch_size == batch_size);
 
-    if (current_index >= batch_offsets.size()) return {};
+    if (current_index >= batch_offset_size.size()) return {};
 
-    auto bo = batch_offsets[current_index++];
+    auto [bo ,bs] = batch_offset_size[current_index];
+    current_index++;
 
     std::vector<size_t> result;
 
-    for (int i = 0; i < batch_size; ++i)
+    for (int i = 0; i < bs; ++i)
     {
-        auto [scene, image] = combined_indices[i + bo * batch_size];
+        auto [scene, image] = combined_indices[i + bo];
 
         size_t comb = (size_t(scene) << 32) | size_t(image);
         result.push_back(comb);

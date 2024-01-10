@@ -69,6 +69,10 @@ class TrainScene
         for (int i = 0; i < scene_dirs.size(); ++i)
         {
             auto scene = std::make_shared<SceneData>(params->train_params.scene_base_dir + scene_dirs[i]);
+            if (params->train_params.override_image_dir != "")
+            {
+                scene->dataset_params.image_dir = params->train_params.override_image_dir;
+            }
 
             // 1.  Separate indices
             auto all_indices                   = scene->Indices();
@@ -129,14 +133,21 @@ class TrainScene
             test_cropped_samplers.push_back(CroppedSampler(scene, test_indices));
             test_samplers.push_back(FullSampler(scene, test_indices));
 
+
+
             if (params->train_params.train_mask_border > 0)
             {
-                int w              = test_samplers.back().image_size_crop(0);
-                int h              = test_samplers.back().image_size_crop(1);
-                torch::Tensor mask = CropMask(h, w, params->train_params.train_mask_border).to(device);
-                TensorToImage<unsigned char>(mask).save(full_experiment_dir + "/eval_mask_" + scene->scene_name +
-                                                        ".png");
-                scene_data.eval_crop_mask = (mask);
+                int i = 0;
+                for (auto dims : test_samplers.back().image_size_crop)
+                {
+                    int w              = dims.x();
+                    int h              = dims.y();
+                    torch::Tensor mask = CropMask(h, w, params->train_params.train_mask_border).to(device);
+                    TensorToImage<unsigned char>(mask).save(full_experiment_dir + "/eval_mask_" + scene->scene_name +
+                                                            "_" + std::to_string(i) + ".png");
+                    scene_data.eval_crop_mask.push_back(mask);
+                    ++i;
+                }
             }
 
             scene->AddIntrinsicsNoise(params->train_params.noise_intr_k, params->train_params.noise_intr_d);
@@ -237,10 +248,10 @@ class TrainScene
         int batch_size  = train ? params->train_params.batch_size : 1;
         int num_workers = train ? params->train_params.num_workers_train : params->train_params.num_workers_eval;
         bool shuffle    = train ? params->train_params.shuffle_train_indices : false;
-        auto options    = torch::data::DataLoaderOptions().batch_size(batch_size).drop_last(true).workers(num_workers);
+        auto options    = torch::data::DataLoaderOptions().batch_size(batch_size).drop_last(false).workers(num_workers);
 
         auto sampler = torch::MultiDatasetSampler(sizes, options.batch_size(), shuffle);
-        int n        = sampler.Size();
+        int n        = sampler.NumImages();
         return std::pair(
             torch::data::make_data_loader(TorchSingleSceneDataset(train_cropped_samplers), std::move(sampler), options),
             n);
@@ -285,7 +296,9 @@ class TrainScene
     struct PerSceneData
     {
         std::shared_ptr<NeuralScene> scene;
-        torch::Tensor eval_crop_mask;
+
+        // for each camera one
+        std::vector<torch::Tensor> eval_crop_mask;
 
         // all image indices that are not used during training.
         // -> we interpolate the metadata for them
@@ -471,10 +484,10 @@ class NeuralTrainer
         {
             Saiga::ProgressBar bar(
                 std::cout, name + " " + std::to_string(epoch_id) + " |",
-                loader_size * params->train_params.batch_size * params->train_params.inner_batch_size, 30, false, 5000);
+                loader_size * params->train_params.inner_batch_size, 30, false, 5000);
             for (std::vector<NeuralTrainData>& batch : *loader)
             {
-                SAIGA_ASSERT(batch.size() == params->train_params.batch_size * params->train_params.inner_batch_size);
+                SAIGA_ASSERT(batch.size() <= params->train_params.batch_size * params->train_params.inner_batch_size);
 
                 int scene_id_of_batch = batch.front()->scene_id;
                 auto& scene_data      = train_scenes->data[scene_id_of_batch];
@@ -491,7 +504,7 @@ class NeuralTrainer
 
                 auto result = pipeline->Forward(*scene_data.scene, batch, train_crop_mask, false);
                 scene_data.epoch_loss += result.float_loss;
-                epoch_loss += result.float_loss.loss_float;
+                epoch_loss += result.float_loss.loss_float * batch.size();
                 num_images += batch.size();
 
                 result.loss.backward();
@@ -502,13 +515,12 @@ class NeuralTrainer
                 }
                 scene_data.scene->OptimizerStep(epoch_id, structure_only);
                 bar.addProgress(batch.size());
-                bar.SetPostfix(" Cur=" + std::to_string(result.float_loss.loss_float) + " Avg=" +
-                               std::to_string(epoch_loss / num_images * params->train_params.batch_size *
-                                              params->train_params.inner_batch_size));
+                bar.SetPostfix(" Cur=" + std::to_string(result.float_loss.loss_float) + " " + std::to_string(num_images) + " Avg=" +
+                               std::to_string(epoch_loss / num_images));
             }
         }
         train_scenes->Unload();
-        return epoch_loss;
+        return epoch_loss / num_images;
     }
 
     void EvalEpoch(int epoch_id, bool save_checkpoint)
@@ -542,36 +554,43 @@ class NeuralTrainer
         Saiga::ProgressBar bar(std::cout, "Eval  " + std::to_string(epoch_id) + " |", loader_size, 30, false, 5000);
         for (std::vector<NeuralTrainData>& batch : *loader)
         {
+            SAIGA_ASSERT(batch.size() == 1);
             int scene_id_of_batch = batch.front()->scene_id;
             auto& scene_data      = train_scenes->data[scene_id_of_batch];
             train_scenes->Load(device, scene_id_of_batch);
             train_scenes->Train(epoch_id, false);
+            int camera_id = batch.front()->img.camera_index;
 
             SAIGA_ASSERT(!torch::GradMode::is_enabled());
-            auto result = pipeline->Forward(*scene_data.scene, batch, scene_data.eval_crop_mask, true,
+            auto result = pipeline->Forward(*scene_data.scene, batch, scene_data.eval_crop_mask[camera_id], true,
                                             write_test_images | params->train_params.write_images_at_checkpoint);
 
             if (params->train_params.write_images_at_checkpoint)
             {
                 for (int i = 0; i < result.image_ids.size(); ++i)
                 {
-                    auto err = ImageTransformation::ErrorImage(result.outputs[i], result.targets[i]);
-                    TemplatedImage<ucvec3> combined(err.h, err.w + result.outputs[i].w);
-                    combined.getImageView().setSubImage(0, 0, result.outputs[i].getImageView());
-                    combined.getImageView().setSubImage(0, result.outputs[i].w, err.getImageView());
+                    // In average only write 10 images
+                    if (Random::sampleBool(std::min(1.0, 10.0 / loader_size)))
+                    {
+                        auto err = ImageTransformation::ErrorImage(result.outputs[i], result.targets[i]);
+                        TemplatedImage<ucvec3> combined(err.h, err.w + result.outputs[i].w);
+                        combined.getImageView().setSubImage(0, 0, result.outputs[i].getImageView());
+                        combined.getImageView().setSubImage(0, result.outputs[i].w, err.getImageView());
 
-                    LogImage(tblogger.get(), combined,
-                             "Checkpoint" + leadingZeroString(epoch_id, 4) + "/" + scene_data.scene->scene->scene_name,
-                             result.image_ids[i]);
+                        LogImage(
+                            tblogger.get(), combined,
+                            "Checkpoint" + leadingZeroString(epoch_id, 4) + "/" + scene_data.scene->scene->scene_name,
+                            result.image_ids[i]);
 
 
-                    result.outputs[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
-                                           leadingZeroString(result.image_ids[i], 5) +
-                                           params->train_params.output_file_type);
+                        result.outputs[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
+                                               leadingZeroString(result.image_ids[i], 5) +
+                                               params->train_params.output_file_type);
 
-                    result.targets[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
-                                           leadingZeroString(result.image_ids[i], 5) + "_gt" +
-                                           params->train_params.output_file_type);
+                        result.targets[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
+                                               leadingZeroString(result.image_ids[i], 5) + "_gt" +
+                                               params->train_params.output_file_type);
+                    }
                 }
             }
             if (write_test_images)
@@ -629,27 +648,53 @@ class NeuralTrainer
     }
 };
 
-int main(int argc, char* argv[])
+
+CombinedParams LoadParamsHybrid(int argc, const char** argv)
+{
+    CLI::App app{"Train ADOP on your Scenes", "adop_train"};
+
+    std::string config_file;
+    app.add_option("--config", config_file)->required();
+    auto params = CombinedParams();
+    params.Load(app);
+
+
+    try
+    {
+        app.parse(argc, argv);
+    }
+    catch (CLI::ParseError& error)
+    {
+        std::cout << "Parsing failed!" << std::endl;
+        std::cout << error.what() << std::endl;
+        CHECK(false);
+    }
+
+    std::cout << "Loading Config File " << config_file << std::endl;
+    params.Load(config_file);
+    app.parse(argc, argv);
+
+    return params;
+}
+
+
+int main(int argc, const char* argv[])
 {
     std::cout << "Git ref: " << GIT_SHA1 << std::endl;
 
-    std::string config_file;
-    CLI::App app{"Train ADOP on your Scenes", "adop_train"};
-    app.add_option("--config", config_file)->required();
-    CLI11_PARSE(app, argc, argv);
+    //    std::string config_file;
+    //    CLI::App app{"Train ADOP on your Scenes", "adop_train"};
+    //    app.add_option("--config", config_file)->required();
+    //    CLI11_PARSE(app, argc, argv);
 
-    if (argc <= 1)
-    {
-        std::cout << "usage: ./Train <train_config_file>" << std::endl;
-        return 0;
-    }
+    params = std::make_shared<CombinedParams>(LoadParamsHybrid(argc, argv));
 
 
-    console << "Train Config: " << config_file << std::endl;
-    SAIGA_ASSERT(std::filesystem::exists(config_file));
+    //    console << "Train Config: " << config_file << std::endl;
+    //    SAIGA_ASSERT(std::filesystem::exists(config_file));
 
 
-    params = std::make_shared<CombinedParams>(config_file);
+    //    params = std::make_shared<CombinedParams>(config_file);
     if (params->train_params.random_seed == 0)
     {
         std::cout << "generating random seed..." << std::endl;

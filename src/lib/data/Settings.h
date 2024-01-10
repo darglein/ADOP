@@ -15,7 +15,8 @@ using namespace Saiga;
 
 struct RenderParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(RenderParams);
+    SAIGA_PARAM_STRUCT(RenderParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
 
 
     // only for debugging
@@ -31,9 +32,9 @@ struct RenderParams : public ParamsBase
 
     float dropout                   = 0.25;
     float depth_accept              = 0.01;
-    bool ghost_gradients            = true;
+    bool ghost_gradients            = false;
     float drop_out_radius_threshold = 0.6;
-    bool drop_out_points_by_radius  = false;
+    bool drop_out_points_by_radius  = true;
 
     // Writes the weight into the 4-channel output texture
     bool debug_weight_color              = false;
@@ -42,7 +43,7 @@ struct RenderParams : public ParamsBase
     bool debug_print_num_rendered_points = false;
 
     float distortion_gradient_factor = 0.005;
-    float K_gradient_factor          = 1;
+    float K_gradient_factor          = 0.5;
 
     // == parameters set by the system ==
     int num_texture_channels           = -1;
@@ -50,7 +51,8 @@ struct RenderParams : public ParamsBase
     bool output_background_mask        = false;
     float output_background_mask_value = 0;
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
         SAIGA_PARAM(render_outliers);
         SAIGA_PARAM(check_normal);
@@ -68,7 +70,8 @@ struct RenderParams : public ParamsBase
 
 struct NeuralCameraParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(NeuralCameraParams);
+    SAIGA_PARAM_STRUCT(NeuralCameraParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
 
     bool enable_vignette = true;
     bool enable_exposure = true;
@@ -82,7 +85,8 @@ struct NeuralCameraParams : public ParamsBase
     float response_gamma       = 1.0 / 2.2;
     float response_leak_factor = 0.01;
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
         SAIGA_PARAM(enable_vignette);
         SAIGA_PARAM(enable_exposure);
@@ -100,8 +104,10 @@ struct NeuralCameraParams : public ParamsBase
 
 struct OptimizerParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(OptimizerParams);
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    SAIGA_PARAM_STRUCT(OptimizerParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
         SAIGA_PARAM(texture_optimizer);
 
@@ -167,25 +173,27 @@ struct OptimizerParams : public ParamsBase
     double lr_environment_map  = 0.02;   // log_texture: 0.0025
 
     // structure
-    double lr_points     = 0.001;
-    double lr_poses      = 0.005;
-    double lr_intrinsics = 0.01;
+    double lr_points     = 0.005;
+    double lr_poses      = 0.01;
+    double lr_intrinsics = 1;
 
     // camera
-    double lr_vignette         = 1e-5;  // sgd: 5e-7, adam 1e-4
+    double lr_vignette         = 5e-6;  // sgd: 5e-7, adam 1e-4
     double lr_response         = 0.001;
     double response_smoothness = 1;
     double lr_wb               = 5e-4;
-    double lr_exposure         = 5e-4;  // sgd 5e-4, adam 1e-3
-    double lr_motion_blur      = 0.005000;
+    double lr_exposure         = 0.0005;  // sgd 5e-4, adam 1e-3
+    double lr_motion_blur      = 0.005;
     double lr_rolling_shutter  = 2e-6;
 };
 
 struct PipelineParams : public ParamsBase
 {
-    SAIGA_PARAM_STRUCT_FUNCTIONS(PipelineParams);
+    SAIGA_PARAM_STRUCT(PipelineParams);
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
         SAIGA_PARAM(train);
 
@@ -216,7 +224,7 @@ struct PipelineParams : public ParamsBase
     int env_map_w               = 1024;
     int env_map_h               = 512;
     int env_map_channels        = 4;
-    int num_texture_channels    = 8;
+    int num_texture_channels    = 4;
 
     // Concats the mask/env_map along the channel dimension
     // This increases the number of input channels of the network
@@ -229,9 +237,13 @@ struct MyTrainParams : public TrainParams
     MyTrainParams() {}
     MyTrainParams(const std::string file) { Load(file); }
 
-    virtual void Params(Saiga::SimpleIni* ini, CLI::App* app) override
+    using ParamStructType = MyTrainParams;
+    SAIGA_PARAM_STRUCT_FUNCTIONS;
+
+    template <class ParamIterator>
+    void Params(ParamIterator* it)
     {
-        TrainParams::Params(ini, app);
+        TrainParams::Params(it);
         SAIGA_PARAM(train_crop_size);
         SAIGA_PARAM(train_mask_border);
         SAIGA_PARAM(reduced_check_point);
@@ -247,6 +259,7 @@ struct MyTrainParams : public TrainParams
         SAIGA_PARAM(experiment_dir);
         SAIGA_PARAM(scene_base_dir);
         SAIGA_PARAM_LIST(scene_names, ',');
+        SAIGA_PARAM(override_image_dir);
 
         SAIGA_PARAM(loss_vgg);
         SAIGA_PARAM(loss_l1);
@@ -298,7 +311,7 @@ struct MyTrainParams : public TrainParams
     bool reduced_check_point        = false;
     bool write_images_at_checkpoint = true;
     bool write_test_images          = false;
-    bool texture_random_init        = false;
+    bool texture_random_init        = true;
     bool texture_color_init         = false;
 
     bool optimize_eval_camera = false;
@@ -311,17 +324,20 @@ struct MyTrainParams : public TrainParams
     std::string scene_base_dir           = "scenes/";
     std::vector<std::string> scene_names = {"boat"};
 
-    // in epoch 1 the lr is x
+    // if this is set, the image dir of the datasets are overwritten by this path
+    std::string override_image_dir = "";
+
+        // in epoch 1 the lr is x
     // in epoch <max_epoch> the lr is x / 10
     float lr_decay_factor = 0.75;
-    int lr_decay_patience = 10;
+    int lr_decay_patience = 15;
 
 
 
     // In the first few iterations we do not optimize camera parameters
     // such as vignetting and CRF because the solution is still too far of a reasonable result
-    int lock_camera_params_epochs    = 50;
-    int lock_structure_params_epochs = 50;
+    int lock_camera_params_epochs    = 25;
+    int lock_structure_params_epochs = 25;
 };
 
 
@@ -354,6 +370,27 @@ struct CombinedParams
         camera_params.Save(file);
         net_params.Save(file);
     }
+
+    void Load(std::string file)
+    {
+        train_params.Load(file);
+        render_params.Load(file);
+        pipeline_params.Load(file);
+        optimizer_params.Load(file);
+        camera_params.Load(file);
+        net_params.Load(file);
+    }
+
+    void Load(CLI::App& app)
+    {
+        train_params.Load(app);
+        render_params.Load(app);
+        pipeline_params.Load(app);
+        optimizer_params.Load(app);
+        camera_params.Load(app);
+        net_params.Load(app);
+    }
+
 
     void Check();
     void imgui();

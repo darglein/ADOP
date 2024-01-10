@@ -11,6 +11,7 @@ message("Build Options")
 
 OptionsHelper(ADOP_HEADLESS "Skips the adop_viewer and other apps that require a window." OFF)
 OptionsHelper(ADOP_ASAN "Adds sanitize=address compiler flag" OFF)
+OptionsHelper(ADOP_TINY_EIGEN "Use saiga's tiny eigen library." ON)
 
 if (ADOP_HEADLESS)
     set(SAIGA_MODULE_OPENGL OFF)
@@ -30,6 +31,7 @@ set(SAIGA_NO_INSTALL ON)
 set(SAIGA_USE_SUBMODULES ON)
 set(SAIGA_WITH_FFMPEG OFF)
 set(SAIGA_WITH_FREETYPE OFF)
+set(SAIGA_WITH_TINY_EIGEN ${ADOP_TINY_EIGEN})
 add_subdirectory(External/saiga)
 PackageHelperTarget(saiga_core SAIGA_FOUND)
 if (NOT ADOP_HEADLESS)
@@ -66,7 +68,6 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-strict-aliasing")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -pthread")
 endif ()
 
 

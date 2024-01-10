@@ -71,7 +71,7 @@ class ADOPVRViewer : public StandaloneWindow<WindowManagement::GLFW, VRRenderer>
                 speed *= 5;
             }
             vec3 dir = camera->rot * renderer->VR().LookingDirection();
-            camera->position.head<3>() += dir * speed;
+            camera->position.head<3>() = camera->position.head<3>() + dir * speed;
             camera->calculateModel();
         }
     }
