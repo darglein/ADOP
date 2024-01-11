@@ -8,7 +8,10 @@
 
 #include "saiga/colorize.h"
 #include "saiga/core/geometry/AccelerationStructure.h"
+#include "saiga/core/imgui/imgui.h"
+#include "saiga/core/model/model_from_shape.h"
 #include "saiga/core/util/ProgressBar.h"
+#include "saiga/vision/torch/RandomCrop.h"
 
 float sphere_radius = 0.01;
 float frustum_size  = 0.05;
@@ -136,8 +139,8 @@ void SceneViewer::imgui()
             if (ImGui::Selectable(str.c_str(), i == selected_capture))
             {
                 selected_capture = i;
-                camera->setModelMatrix(f.OpenglModel());
-                camera->updateFromModel();
+                ::camera->setModelMatrix(f.OpenglModel());
+                ::camera->updateFromModel();
             }
         }
         ImGui::ListBoxFooter();

@@ -371,6 +371,7 @@ class NeuralTrainer
             if (save_checkpoint)
             {
                 std::filesystem::create_directory(ep_dir);
+                std::filesystem::create_directory(ep_dir + "/test/");
             }
 
             {
@@ -570,7 +571,7 @@ class NeuralTrainer
                 for (int i = 0; i < result.image_ids.size(); ++i)
                 {
                     // In average only write 10 images
-                    if (Random::sampleBool(std::min(1.0, 10.0 / loader_size)))
+                   // if (Random::sampleBool(std::min(1.0, 10.0 / loader_size)))
                     {
                         auto err = ImageTransformation::ErrorImage(result.outputs[i], result.targets[i]);
                         TemplatedImage<ucvec3> combined(err.h, err.w + result.outputs[i].w);
@@ -583,11 +584,11 @@ class NeuralTrainer
                             result.image_ids[i]);
 
 
-                        result.outputs[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
+                        result.outputs[i].save(ep_dir + "/test/" + scene_data.scene->scene->scene_name + "_" +
                                                leadingZeroString(result.image_ids[i], 5) +
                                                params->train_params.output_file_type);
 
-                        result.targets[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
+                        result.targets[i].save(ep_dir + "/test/" + scene_data.scene->scene->scene_name + "_" +
                                                leadingZeroString(result.image_ids[i], 5) + "_gt" +
                                                params->train_params.output_file_type);
                     }

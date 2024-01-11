@@ -44,14 +44,11 @@ PackageHelperTarget(saiga_cuda SAIGA_FOUND)
 find_package(Torch REQUIRED)
 PackageHelperTarget(torch TORCH_FOUND)
 
-# Torchvision
-add_subdirectory(External/torchvision)
-target_include_directories(torchvision PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/External/torchvision/>
-        $<INSTALL_INTERFACE:External/torchvision/>
-        )
-PackageHelperTarget(torchvision TORCHVISION_FOUND)
+#replace flags
 
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed")
+include_directories(.)
+include_directories(${PACKAGE_INCLUDES})
 
 add_subdirectory(External/tensorboard_logger)
 #target_include_directories(tensorboard_logger PUBLIC External/tensorboard_logger/include ${CMAKE_CURRENT_BINARY_DIR}/External/tensorboard_logger)

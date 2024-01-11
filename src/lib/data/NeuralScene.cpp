@@ -283,7 +283,7 @@ void NeuralScene::LoadCheckpoint(const std::string& checkpoint_dir)
     {
         std::cout << "Load Checkpoint pose" << std::endl;
 
-        std::cout << "First pose before " << poses->Download().front() << std::endl;
+      //  std::cout << "First pose before " << poses->Download().front() << std::endl;
 
         torch::load(poses, checkpoint_prefix + "poses.pth");
 
@@ -291,7 +291,7 @@ void NeuralScene::LoadCheckpoint(const std::string& checkpoint_dir)
         SAIGA_ASSERT(poses->poses_se3.dtype() == torch::kDouble);
         SAIGA_ASSERT(poses->tangent_poses.dtype() == torch::kDouble);
 
-        std::cout << "First pose after " << poses->Download().front() << std::endl;
+        //std::cout << "First pose after " << poses->Download().front() << std::endl;
 
         DownloadPoses();
     }

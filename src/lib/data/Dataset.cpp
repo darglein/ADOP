@@ -5,6 +5,7 @@
  */
 #include "Dataset.h"
 
+#include "saiga/vision/cameraModel/Intrinsics4.h"
 #include "saiga/vision/torch/RandomCrop.h"
 
 

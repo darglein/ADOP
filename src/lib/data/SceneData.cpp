@@ -5,7 +5,10 @@
  */
 #include "SceneData.h"
 
+#include "saiga/core/geometry/kdtree.h"
+#include "saiga/core/sophus/Sophus.h"
 #include "saiga/core/util/BinaryFile.h"
+#include "saiga/core/math/Types.h"
 
 
 Saiga::Camera FrameData::GLCamera() const
@@ -726,8 +729,8 @@ TemplatedImage<ucvec3> SceneData::CPURenderFrame(int id, float scale)
 
     // std::swap(cam.ocam.cx, cam.ocam.cy);
     std::cout << "Rendering cpu frame " << id << std::endl;
-    std::cout << "pose " << f.pose << std::endl;
-    std::cout << "view " << f.pose.inverse() << std::endl;
+   // std::cout << "pose " << f.pose << std::endl;
+   // std::cout << "view " << f.pose.inverse() << std::endl;
     std::cout << "ocam " << cam.ocam << std::endl;
 
     for (int i = 0; i < point_cloud.NumVertices(); ++i)
