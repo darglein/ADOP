@@ -1,7 +1,12 @@
 # Compiling ADOP on Windows
 
-Important: The Windows setup may not be working in all future commits, it was originally written for commit a433698. 
+Important: The Windows setup may not be working in all future commits, it was originally written for commit a433698.
 It is also not tested as well as the Ubuntu setup, so prefer using that if issues arise.
+
+
+#### Deprecated!
+
+The Windows version is depricated, check out commit a433698 for the last working version.
 
 ### 1. Prerequisites
 
@@ -25,7 +30,7 @@ git submodule update --init --recursive --jobs 0
 ```
 
 ### 2. Setup Environment
- 
+
 ```shell
 cd ADOP
 conda create -y -n adop_windows python=3.9.7
@@ -37,10 +42,10 @@ conda install -y freeimage=3.18 jpeg=9d protobuf=3.13 -c conda-forge
 ```
 
 ### 3. Install Pytorch from Source
- 
- * We need a source build because the packaged pytorch was build using the old C++ ABI. 
- 
- 
+
+ * We need a source build because the packaged pytorch was build using the old C++ ABI.
+
+
  ```shell
 cd ADOP/External/pytorch
 
@@ -57,7 +62,7 @@ set BUILD_TYPE=release
 set TMP_DIR_WIN=%TMP%
 
 install_magma.bat
-install_mkl.bat	
+install_mkl.bat
 install_sccache.bat
 
 cd ../../../..
@@ -77,7 +82,7 @@ python setup.py install
 
 ```
 
-### 4. Build ADOP 
+### 4. Build ADOP
 
 You may want to remove "ADOP/External/saiga/cmake/FindMKL.cmake" if MKL tools are not globally installed on your system, otherwise compiling may fail with <LNK1104 "MKL_LIBRARIES_CORE-NOTFOUND.lib" not found>.
 
@@ -97,8 +102,8 @@ cmake -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%/Lib/site-packages/torch/;%CONDA_PREFIX
 # start ADOP/build/ADOP.sln in VS2019
 # select RelwithDebInfo as <Build_Config> and compile
 
-# start from the command line with 
-# $./build/bin/<Build_Config>/adop_viewer.exe --scene_dir scenes/tt_playground 
+# start from the command line with
+# $./build/bin/<Build_Config>/adop_viewer.exe --scene_dir scenes/tt_playground
 # or similar (see common README)
 
 ```

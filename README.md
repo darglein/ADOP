@@ -28,9 +28,37 @@ well over 100M points in real time.
 
 <a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
 
+## Citation
+
+```
+@article{ruckert2022adop,
+  title={Adop: Approximate differentiable one-pixel point rendering},
+  author={R{\"u}ckert, Darius and Franke, Linus and Stamminger, Marc},
+  journal={ACM Transactions on Graphics (ToG)},
+  volume={41},
+  number={4},
+  pages={1--14},
+  year={2022},
+  publisher={ACM New York, NY, USA}
+}
+```
+
+## Follow-up
+
+If you found this repository interesting, take a look at our follow-up works:
+
+* [VET: Visual Error Tomography for Point Cloud Completion and High-Quality Neural Rendering](https://lfranke.github.io/vet/): Improving quality by completing the COLMAP pointclouds used by ADOP during training - [Code](https://github.com/lfranke/VET)
+
+* [TRIPS: Trilinear Point Splatting for Real-Time Radiance Field Rendering](https://lfranke.github.io/trips/): ADOP follow-up work with non-approximate gradients, smaller neural network, less flickering and faster rendering  - [Code](https://github.com/lfranke/TRIPS)
+
+## Notes
+
+This repository was updated to a more recent torch and CUDA version in January 2024. For the original (paper) implementation, see commit [ad88015](https://github.com/darglein/ADOP/tree/ad8801583ad30e2e9e205947cb3602406d3aac0f).
+
+
 ## README Hierarchy
 
-There are additional READMEs in subfolders. Take a look at [src/README.md](src/README.md) and [src/README_WINDOWS.md](src/README_WINDOWS.md) for compile instructions and [scenes/README.md](scenes/README.md) for information on custom datasets.
+There are additional READMEs in subfolders. Take a look at [src/README.md](src/README.md) and [src/README_WINDOWS.md](src/README_WINDOWS.md)(depricated) for compile instructions and [scenes/README.md](scenes/README.md) for information on custom datasets.
 
 ## Compile Instructions
 
@@ -228,14 +256,3 @@ https://user-images.githubusercontent.com/16142878/138441057-dc0b0074-8e8e-4ba2-
 https://user-images.githubusercontent.com/16142878/138441154-fa218d86-273c-4db1-951d-c7d39c015844.mp4
 
 
-## Citation
-
-```
-@article{ruckert2021adop,
-  title={Adop: Approximate differentiable one-pixel point rendering},
-  author={R{\"u}ckert, Darius and Franke, Linus and Stamminger, Marc},
-  journal={arXiv preprint arXiv:2110.06635},
-  year={2021}
-}
-
-```

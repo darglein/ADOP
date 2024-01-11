@@ -32,7 +32,7 @@ NeuralPipeline::NeuralPipeline(std::shared_ptr<CombinedParams> _params) : params
 
     if (params->pipeline_params.train)
     {
-        loss_vgg = std::make_shared<Saiga::PretrainedVGG19Loss>(Saiga::PretrainedVGG19Loss("loss/vgg_script_caffe.pth"));
+        loss_vgg = std::make_shared<Saiga::PretrainedVGG19Loss>(Saiga::PretrainedVGG19Loss("loss/traced_caffe_vgg.pt"));
         loss_vgg->eval();
         loss_vgg->to(device);
 
