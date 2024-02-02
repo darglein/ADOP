@@ -22,17 +22,14 @@
 #    ifdef BUILD_NEURAL_POINTS_DLL
 #        define _NP_API __declspec(dllexport)
 #        define _NP_INLINE_API inline
-#        define _NP_EXT_API
 #    else
 #        define _NP_API __declspec(dllimport)
 #        define _NP_INLINE_API
-#        define _NP_EXT_API extern
 #    endif
 
 #else
 // UNIX, ignore _API
 #    define _NP_API
-#    define _NP_EXT_API
 #    define _NP_INLINE_API inline
 #endif
 
