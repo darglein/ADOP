@@ -43,8 +43,8 @@ std::pair<std::vector<torch::Tensor>, std::vector<torch::Tensor>> PointRenderMod
         auto ks    = nri->scene->intrinsics->DownloadK();
         for (auto i : nri->images)
         {
-            std::cout << "Render (" << i.camera_index << ", " << i.image_index << ") Pose: " << poses[i.image_index]
-                      << " K: " << ks[i.camera_index] << std::endl;
+          //  std::cout << "Render (" << i.camera_index << ", " << i.image_index << ") Pose: " << poses[i.image_index]
+          //            << " K: " << ks[i.camera_index] << std::endl;
         }
     }
 

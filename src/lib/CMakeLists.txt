@@ -20,6 +20,8 @@ configure_file (
 
 cmake_policy(SET CMP0104 OLD)
 add_library(${TARGET_NAME} SHARED "")
+generate_export_header(${TARGET_NAME})
+
 target_include_directories(${TARGET_NAME} PUBLIC "." ${MY_BUILDCONFIG_DIR})
 target_sources(${TARGET_NAME} PRIVATE "${MY_BUILDCONFIG_DIR}/build_config.h" "${MY_BUILDCONFIG_DIR}/git_sha1.h")
 target_link_libraries(${TARGET_NAME} ${LIBS})
@@ -58,3 +60,26 @@ set_target_properties(${TARGET_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${PROJ
 if (PR_NO_WINDOW)
     target_compile_definitions(${TARGET_NAME} PUBLIC PR_NO_WINDOW)
 endif ()
+
+if(WIN32)
+	#build shared lib flags
+    target_compile_definitions(${TARGET_NAME} PRIVATE -DBUILD_NEURAL_POINTS_DLL)
+    target_compile_definitions(${TARGET_NAME} PRIVATE -DBUILD_SHARED_LIBS)
+
+    #torch_cpu and torch_cuda interface compiler flags which need to be "escaped" with -Xcompiler
+    function(CUDA_CONVERT_FLAGS EXISTING_TARGET)
+        get_property(old_flags TARGET ${EXISTING_TARGET} PROPERTY INTERFACE_COMPILE_OPTIONS)
+        message("replacing ${EXISTING_TARGET} cuda flags:")
+        message(${old_flags})
+        if(NOT "${old_flags}" STREQUAL "")
+            string(REPLACE ";" "," CUDA_flags "${old_flags}")
+            set_property(TARGET ${EXISTING_TARGET} PROPERTY INTERFACE_COMPILE_OPTIONS
+                "$<$<BUILD_INTERFACE:$<COMPILE_LANGUAGE:CXX>>:${old_flags}>$<$<BUILD_INTERFACE:$<COMPILE_LANGUAGE:CUDA>>:-Xcompiler=${CUDA_flags}>"
+                )
+        endif()
+    endfunction()
+
+    #CUDA_CONVERT_FLAGS(torch_cpu)
+    #CUDA_CONVERT_FLAGS(torch_cuda)
+
+endif()

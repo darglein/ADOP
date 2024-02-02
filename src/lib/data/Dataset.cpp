@@ -5,6 +5,7 @@
  */
 #include "Dataset.h"
 
+#include "saiga/vision/cameraModel/Intrinsics4.h"
 #include "saiga/vision/torch/RandomCrop.h"
 
 
@@ -75,7 +76,7 @@ void warpPerspective(ImageView<T> src, ImageView<T> dst, IntrinsicsPinholef dst_
             vec2 ip  = dst_2_src.normalizedToImage(p);
             float dx = ip(0);
             float dy = ip(1);
-            if (src.template inImage(dy, dx))
+            if (src.inImage(dy, dx))
             {
                 dst(y, x) = src.inter(dy, dx);
             }
@@ -95,7 +96,7 @@ void warpPerspectiveNearest(ImageView<T> src, ImageView<T> dst, IntrinsicsPinhol
             vec2 ip = dst_2_src.normalizedToImage(p);
             int dx  = round(ip(0));
             int dy  = round(ip(1));
-            if (src.template inImage(dy, dx))
+            if (src.inImage(dy, dx))
             {
                 dst(y, x) = src(dy, dx);
             }

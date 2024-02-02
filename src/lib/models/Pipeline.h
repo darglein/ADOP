@@ -10,13 +10,36 @@
 #include "saiga/vision/torch/ImageSimilarity.h"
 #include "saiga/vision/torch/PartialConvUnet2d.h"
 #include "saiga/vision/torch/TorchHelper.h"
-#include "saiga/vision/torch/VGGLoss.h"
+//#include "saiga/vision/torch/VGGLoss.h"
 
 #include "data/NeuralScene.h"
 #include "models/NeuralTexture.h"
 #include "models/Pipeline.h"
 #include "rendering/PointRenderer.h"
 #include "rendering/RenderModule.h"
+
+
+namespace Saiga{
+class PretrainedVGG19Loss
+{
+   public:
+    PretrainedVGG19Loss(const std::string& file) { module = torch::jit::load(file); }
+
+    torch::Tensor forward(torch::Tensor input, torch::Tensor target)
+    {
+        SAIGA_ASSERT(input.dim() == 4);
+
+        module.to(input.device());
+        std::vector<torch::jit::IValue> inputs;
+        inputs.push_back(input);
+        inputs.push_back(target);
+        return module.forward(inputs).toTensor();
+    }
+    void to(torch::Device d) { module.to(d); }
+    void eval() { module.eval(); }
+    torch::jit::script::Module module;
+};
+}
 using namespace Saiga;
 
 struct LossResult
@@ -149,8 +172,8 @@ class NeuralPipeline
     std::shared_ptr<torch::optim::Optimizer> render_optimizer;
 
     // Loss stuff
-    PretrainedVGG19Loss loss_vgg = nullptr;
-    PSNR loss_psnr               = PSNR(0, 1);
-    LPIPS loss_lpips             = LPIPS("loss/traced_lpips.pt");
+    std::shared_ptr<PretrainedVGG19Loss> loss_vgg   = nullptr;
+    PSNR loss_psnr                                  = PSNR(0, 1);
+    LPIPS loss_lpips                                = LPIPS("loss/traced_lpips.pt");
 
 };

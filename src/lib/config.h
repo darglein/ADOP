@@ -18,11 +18,27 @@
 
 #include "build_config.h"
 
+#ifdef _WIN32
+#    ifdef BUILD_NEURAL_POINTS_DLL
+#        define _NP_API __declspec(dllexport)
+#        define _NP_INLINE_API inline
+#    else
+#        define _NP_API __declspec(dllimport)
+#        define _NP_INLINE_API
+#    endif
+
+#else
+// UNIX, ignore _API
+#    define _NP_API
+#    define _NP_INLINE_API inline
+#endif
+
+
 namespace Saiga
 {
 class Camera;
 }
-inline Saiga::Camera* camera;
+_NP_INLINE_API _NP_API Saiga::Camera* camera;
 
 using Saiga::mat3;
 using Saiga::mat4;

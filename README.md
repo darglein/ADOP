@@ -28,6 +28,39 @@ well over 100M points in real time.
 
 <a href="https://www.youtube.com/watch?v=WJRyu1JUtVw"><img  width="300" src="https://img.youtube.com/vi/WJRyu1JUtVw/hqdefault.jpg"> </a>
 
+## Citation
+
+```
+@article{ruckert2022adop,
+  title={Adop: Approximate differentiable one-pixel point rendering},
+  author={R{\"u}ckert, Darius and Franke, Linus and Stamminger, Marc},
+  journal={ACM Transactions on Graphics (ToG)},
+  volume={41},
+  number={4},
+  pages={1--14},
+  year={2022},
+  publisher={ACM New York, NY, USA}
+}
+```
+
+## Follow-up
+
+If you found this repository interesting, take a look at our follow-up works:
+
+* [VET: Visual Error Tomography for Point Cloud Completion and High-Quality Neural Rendering](https://lfranke.github.io/vet/): Improving quality by completing the used pointclouds during training in the ADOP pipeline - [Code](https://github.com/lfranke/VET)
+
+* [TRIPS: Trilinear Point Splatting for Real-Time Radiance Field Rendering](https://lfranke.github.io/trips/): ADOP follow-up work with non-approximate gradients, smaller neural network, less flickering and faster rendering. This paper also includes ADOP metrics for the common MipNeRF-360 dataset as well as more Tanks and Temples scenes.  - [Code](https://github.com/lfranke/TRIPS)
+
+
+
+## Notes
+
+This repository was updated to a more recent torch and CUDA version in January 2024. For the original (paper) implementation, see commit [ad88015](https://github.com/darglein/ADOP/tree/ad8801583ad30e2e9e205947cb3602406d3aac0f).
+
+
+## README Hierarchy
+
+There are additional READMEs in subfolders. Take a look at [src/README.md](src/README.md) and [src/README_WINDOWS.md](src/README_WINDOWS.md) for compile instructions and [scenes/README.md](scenes/README.md) for information on custom datasets.
 
 ## Compile Instructions
 
@@ -35,10 +68,10 @@ well over 100M points in real time.
  * A python wrapper for pyTorch is currently not available. Feel free to submit a pull-request on that issue.
  * The detailed compile instructions can be found here: [src/README.md](src/README.md)
 
-## Running ADOP on pretrained models
+## Running ADOP on Pretrained Models
 
 After a successful compilation, the best way to get started is to run `adop_viewer` on the *tanks and temples* scenes using our pretrained models.
-First, download the [scenes](https://zenodo.org/record/6759811/files/scenes.zip?download=1) and extract them into `ADOP/scenes`. 
+First, download the [scenes](https://zenodo.org/record/6759811/files/scenes.zip?download=1) and extract them into `ADOP/scenes`.
 Now, download the [model checkpoints](https://zenodo.org/record/6759811/files/experiments.zip?download=1) and extract them into `ADOP/experiments`.
 Your folder structure should look like this:
 ```shell
@@ -57,15 +90,17 @@ ADOP/
 
 ## ADOP Viewer
 
-The `adop_viewer` can now be run by passing the path to a scene. 
+The `adop_viewer` can now be run by passing the path to a scene.
 It will automatically search for fitting pretrained models in the `experiments/` directory.
 For example:
 ```shell
-cd ADOP
+conda activate adop
+export CONDA=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA/lib
 ./build/bin/adop_viewer --scene_dir scenes/boat
 ```
 
- * The working dir of `adop_viewer` must be the ADOP root directory. This is required because the shaders and experiments are search on relative paths. 
+ * The working dir of `adop_viewer` must be the ADOP root directory. This is required because the shaders and experiments are search on relative paths.
  * The most important keyboard shortcuts are:
     * F1: Switch to 3DView
     * F2: Switch to neural view
@@ -80,14 +115,14 @@ cd ADOP
 
 ## ADOP VR Viewer
 
-We have implemented **experimental** VR support using OpenVR/SteamVR. 
+We have implemented **experimental** VR support using OpenVR/SteamVR.
 Checkout src/README.md for the compilation requirements.
 ```shell
 cd ADOP
 ./build/bin/adop_vr_viewer --scene_dir scenes/tt_playground
 ```
  * Tune the `render_scale` settings for a compromise between FPS and resolution
- * Requires a high-end GPU to run reasonable 
+ * Requires a high-end GPU to run reasonable
  * Hopefully will be optimized in the future :)
 
 <img src="images/vr.gif">
@@ -104,7 +139,7 @@ If you want to fit ADOP to your own HDR scene consider the following:
  * For scenes with a large dynamic range, change to the log texture format and reduce the texture learning rate. Use the train config of our boat scene as reference.
  * Check if an initial EV guess is available. Many cameras store the exposure settings in the EXIF data.
  * Set the scene EV in the dataset.ini to the mean EV of all frames. This keeps the weights in a reasonable range.
- 
+
 When viewing HDR scenes in the `adop_viewer` you can press [F7] to open the tone mapper tab.
 Here you can change the exposure value of the virtual camera.
 In the render settings you find an option to use OpenGL based tone mapping instead of the learned on.
@@ -120,7 +155,7 @@ https://user-images.githubusercontent.com/16142878/138316754-ef8b2a8a-d421-4542-
 
 ## Training ADOP
 The ADOP pipeline is fitted to your scenes by the `adop_train` executable.
-All training parameters are stored in a separate config file. 
+All training parameters are stored in a separate config file.
 The basic syntax is:
 ```shell
 cd ADOP
@@ -164,16 +199,16 @@ Otherwise, the batch size will be too small for good results.
 
 #### Duration
 
-As you can see in `configs`, we usually train for 400 epochs. 
+As you can see in `configs`, we usually train for 400 epochs.
 This will take between 12-24h depending on scene size and training hardware.
 However, after 100 epochs (3-6h) the novel view synthesis already works very well.
 You can use this checkpoint in the `adop_viewer` to check if everything is working.
 
 ## Camera Models
 
-ADOP currently supports two different camera models. 
-The [Pinhole/Distortion](https://docs.opencv.org/4.5.4/d9/d0c/group__calib3d.html) camera model 
-and the [Omnidirectional](https://sites.google.com/site/scarabotix/ocamcalib-omnidirectional-camera-calibration-toolbox-for-matlab?authuser=0) camera model. 
+ADOP currently supports two different camera models.
+The [Pinhole/Distortion](https://docs.opencv.org/4.5.4/d9/d0c/group__calib3d.html) camera model
+and the [Omnidirectional](https://sites.google.com/site/scarabotix/ocamcalib-omnidirectional-camera-calibration-toolbox-for-matlab?authuser=0) camera model.
 
 #### Pinhole/Distortion Camera Model
 
@@ -223,14 +258,3 @@ https://user-images.githubusercontent.com/16142878/138441057-dc0b0074-8e8e-4ba2-
 https://user-images.githubusercontent.com/16142878/138441154-fa218d86-273c-4db1-951d-c7d39c015844.mp4
 
 
-## Citation
-
-```
-@article{ruckert2021adop,
-  title={Adop: Approximate differentiable one-pixel point rendering},
-  author={R{\"u}ckert, Darius and Franke, Linus and Stamminger, Marc},
-  journal={arXiv preprint arXiv:2110.06635},
-  year={2021}
-}
-
-```

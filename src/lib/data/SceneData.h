@@ -10,7 +10,10 @@
 #include "saiga/core/sophus/Sophus.h"
 #include "saiga/core/util/directory.h"
 #include "saiga/core/util/tostring.h"
+#include "saiga/vision/cameraModel/Intrinsics4.h"
+#include "saiga/vision/cameraModel/Distortion.h"
 #include "saiga/vision/cameraModel/OCam.h"
+#include "saiga/core/sophus/Sophus.h"
 
 #include "config.h"
 

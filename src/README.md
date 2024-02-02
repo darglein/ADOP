@@ -5,7 +5,7 @@
 Supported Operating System
  * Ubuntu 18.04, 20.04
 
-Supported Compiler 
+Supported Compiler
  * g++-7
  * g++-9
 
@@ -25,28 +25,23 @@ sudo apt install xorg-dev
 ```
 
 ### 2. Setup Environment
- 
+
 ```shell
 cd ADOP
 ./create_environment.sh
 ```
 
-### 3. Install Pytorch from Source
- 
- * We need a source build because the packaged pytorch was build using the old C++ ABI. 
- 
+### 3. Install Pytorch
+
  ```shell
 cd ADOP
-./install_pytorch.sh
+./install_pytorch_precompiled.sh
 ```
 
-### 4. Build ADOP 
+### 4. Build ADOP
 
 ```shell
 conda activate adop
-git clone git@github.com:darglein/ADOP.git
-cd ADOP
-git submodule update --init --recursive --jobs 0
 
 # Set this to either g++-7 or 9
 export CC=gcc-9
@@ -62,13 +57,24 @@ make -j10
 ```
 
 
+### 5. Run ADOP
+
+* download supplemental data as seen in root directory [README.md](../README.md)
+
+```shell
+conda activate adop
+export CONDA=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA/lib
+./build/bin/adop_viewer --scene_dir scenes/boat
+```
+
 ### Building with VR support
 
  * Install Steam and SteamVR
  * Add openvr to the adop environment
 ```shell
 conda activate adop
-conda install -y -c schrodinger openvr 
+conda install -y -c schrodinger openvr
 ```
  * Compile ADOP again
 

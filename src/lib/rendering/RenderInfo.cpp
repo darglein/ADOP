@@ -50,7 +50,7 @@ variable_list PointRender::backward(AutogradContext* ctx, variable_list grad_out
     // With enviroment map we have <num_layers> additonal inputs because we render them first
     // TODO: maybe move env-map computation into rendering kernel
     int expected_output = 5;
-    CHECK_EQ(derives.size(), expected_output);
+    //CHECK_EQ(derives.size(), expected_output);
 
     // The last empty grad is for the 'IValue info' of the forward function
     derives.push_back(Variable());

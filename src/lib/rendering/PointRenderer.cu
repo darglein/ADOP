@@ -34,7 +34,7 @@ __device__ inline vec3 colorizeTurbo(float x)
     const vec2 kGreenVec2 = vec2(4.27729857, 2.82956604);
     const vec2 kBlueVec2  = vec2(-89.90310912, 27.34824973);
 
-    x       = saturate(x);
+    x       = __saturatef(x);
     vec4 v4 = vec4(1.0, x, x * x, x * x * x);
     // vec2 v2 = v4.zw * v4.z;
     vec2 v2 = vec2(v4[2], v4[3]) * v4[2];
@@ -1650,9 +1650,9 @@ __global__ void ApplyTangent(Vec6* tangent, Sophus::SE3d* pose, int n)
 
     Vec6 t = tangent[tid];
     auto p = pose[tid];
-    p      = Sophus::se3_expd(t) * p;
+    p         = Sophus::se3_expd(t) * p;
 
-    pose[tid]    = p;
+    pose[tid] = p;
     tangent[tid] = Vec6::Zero();
 }
 

@@ -11,6 +11,7 @@
 #include "config.h"
 #include "data/SceneData.h"
 #include "opengl/NeuralPointCloudOpenGL.h"
+#include "../config.h"
 
 using namespace Saiga;
 

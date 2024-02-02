@@ -54,7 +54,7 @@ HD inline thrust::pair<vec2, float> ProjectPointPinhole(vec3 p, vec3 n, Sophus::
 
     vec3 view_p = TransformPoint<float>(V, world_p);
     float z     = view_p.z();
-    z           = fmax(z, 0);
+    z           = fmax(z, 0.f);
 
     if (check_normal)
     {

@@ -19,8 +19,9 @@
 #include <torch/script.h>
 
 #include "git_sha1.h"
+#ifdef TBLOGGER
 #include "tensorboard_logger.h"
-
+#endif
 std::string full_experiment_dir;
 
 std::shared_ptr<CombinedParams> params;
@@ -40,12 +41,14 @@ inline std::string EncodeImageToString(const Image& img, std::string type = "png
     return result;
 }
 
+#ifdef TBLOGGER
 template <typename T>
 inline void LogImage(TensorBoardLogger* tblogger, const TemplatedImage<T>& img, std::string name, int step)
 {
     auto img_str = EncodeImageToString(img, "png");
     tblogger->add_image(name, step, img_str, img.h, img.w, channels(img.type));
 }
+#endif
 
 static torch::Tensor CropMask(int h, int w, int border)
 {
@@ -324,8 +327,9 @@ class NeuralTrainer
     std::string ep_dir;
     LRSchedulerPlateau lr_scheduler;
 
+#ifdef TBLOGGER
     std::shared_ptr<TensorBoardLogger> tblogger;
-
+#endif
     ~NeuralTrainer() {}
 
     NeuralTrainer()
@@ -346,7 +350,9 @@ class NeuralTrainer
         SAIGA_ASSERT(console_error.rdbuf());
         std::cerr.rdbuf(console_error.rdbuf());
 
+#ifdef TBLOGGER
         tblogger     = std::make_shared<TensorBoardLogger>((full_experiment_dir + "/tfevents.pb").c_str());
+#endif
         train_scenes = std::make_shared<TrainScene>(params->train_params.scene_names);
 
         // Save all paramters into experiment output dir
@@ -371,6 +377,7 @@ class NeuralTrainer
             if (save_checkpoint)
             {
                 std::filesystem::create_directory(ep_dir);
+                std::filesystem::create_directory(ep_dir + "/test/");
             }
 
             {
@@ -379,8 +386,10 @@ class NeuralTrainer
                     auto epoch_loss = TrainEpoch(epoch_id, train_scenes->train_cropped_samplers, false, "Train");
                     for (auto& sd : train_scenes->data)
                     {
+#ifdef TBLOGGER
                         tblogger->add_scalar("LossTrain/" + sd.scene->scene->scene_name, epoch_id,
                                              sd.epoch_loss.Average().loss_float);
+#endif
                         sd.epoch_loss.Average().AppendToFile(
                             full_experiment_dir + "loss_train_" + sd.scene->scene->scene_name + ".txt", epoch_id);
                     }
@@ -390,8 +399,11 @@ class NeuralTrainer
                         TrainEpoch(epoch_id, train_scenes->test_cropped_samplers, true, "EvalRefine");
                         for (auto& sd : train_scenes->data)
                         {
+#ifdef TBLOGGER
+
                             tblogger->add_scalar("LossEvalRefine/" + sd.scene->scene->scene_name, epoch_id,
                                                  sd.epoch_loss.Average().loss_float);
+#endif
                             sd.epoch_loss.Average().AppendToFile(
                                 full_experiment_dir + "loss_eval_refine_" + sd.scene->scene->scene_name + ".txt",
                                 epoch_id);
@@ -400,7 +412,9 @@ class NeuralTrainer
 
                     auto reduce_factor           = lr_scheduler.step(epoch_loss);
                     static double current_factor = 1;
+#ifdef TBLOGGER
                     tblogger->add_scalar("LR/factor", epoch_id, current_factor);
+#endif
                     current_factor *= reduce_factor;
 
                     if (reduce_factor < 1)
@@ -437,12 +451,14 @@ class NeuralTrainer
                     for (auto& sd : train_scenes->data)
                     {
                         auto avg = sd.epoch_loss.Average();
+#ifdef TBLOGGER
                         tblogger->add_scalar("LossEval/" + sd.scene->scene->scene_name + "/vgg", epoch_id,
                                              avg.loss_vgg);
                         tblogger->add_scalar("LossEval/" + sd.scene->scene->scene_name + "/lpips", epoch_id,
                                              avg.loss_lpips);
                         tblogger->add_scalar("LossEval/" + sd.scene->scene->scene_name + "/psnr", epoch_id,
                                              avg.loss_psnr);
+#endif
                         avg.AppendToFile(full_experiment_dir + "loss_eval_" + sd.scene->scene->scene_name + ".txt",
                                          epoch_id);
                     }
@@ -569,27 +585,28 @@ class NeuralTrainer
             {
                 for (int i = 0; i < result.image_ids.size(); ++i)
                 {
-                    // In average only write 10 images
-                    if (Random::sampleBool(std::min(1.0, 10.0 / loader_size)))
-                    {
                         auto err = ImageTransformation::ErrorImage(result.outputs[i], result.targets[i]);
                         TemplatedImage<ucvec3> combined(err.h, err.w + result.outputs[i].w);
                         combined.getImageView().setSubImage(0, 0, result.outputs[i].getImageView());
                         combined.getImageView().setSubImage(0, result.outputs[i].w, err.getImageView());
 
+                        result.outputs[i].save(ep_dir + "/test/" + scene_data.scene->scene->scene_name + "_" +
+                                               leadingZeroString(result.image_ids[i], 5) +
+                                               params->train_params.output_file_type);
+
+                        result.targets[i].save(ep_dir + "/test/" + scene_data.scene->scene->scene_name + "_" +
+                                               leadingZeroString(result.image_ids[i], 5) + "_gt" +
+                                               params->train_params.output_file_type);
+
+                    // In average only write 10 images to TB
+                    if (Random::sampleBool(std::min(1.0, 10.0 / loader_size)))
+                    {
+#ifdef TBLOGGER
                         LogImage(
                             tblogger.get(), combined,
                             "Checkpoint" + leadingZeroString(epoch_id, 4) + "/" + scene_data.scene->scene->scene_name,
                             result.image_ids[i]);
-
-
-                        result.outputs[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
-                                               leadingZeroString(result.image_ids[i], 5) +
-                                               params->train_params.output_file_type);
-
-                        result.targets[i].save(ep_dir + "/" + scene_data.scene->scene->scene_name + "_" +
-                                               leadingZeroString(result.image_ids[i], 5) + "_gt" +
-                                               params->train_params.output_file_type);
+#endif
                     }
                 }
             }

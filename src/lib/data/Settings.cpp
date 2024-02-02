@@ -4,6 +4,8 @@
  * See LICENSE file for more information.
  */
 #include "Settings.h"
+#include "saiga/core/imgui/imgui.h"
+
 
 void CombinedParams::Check()
 {

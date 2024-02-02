@@ -44,19 +44,18 @@ PackageHelperTarget(saiga_cuda SAIGA_FOUND)
 find_package(Torch REQUIRED)
 PackageHelperTarget(torch TORCH_FOUND)
 
-# Torchvision
-add_subdirectory(External/torchvision)
-target_include_directories(torchvision PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/External/torchvision/>
-        $<INSTALL_INTERFACE:External/torchvision/>
-        )
-PackageHelperTarget(torchvision TORCHVISION_FOUND)
+#replace flags
 
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed")
+include_directories(.)
+include_directories(${PACKAGE_INCLUDES})
 
-add_subdirectory(External/tensorboard_logger)
-#target_include_directories(tensorboard_logger PUBLIC External/tensorboard_logger/include ${CMAKE_CURRENT_BINARY_DIR}/External/tensorboard_logger)
-set_property(TARGET tensorboard_logger PROPERTY POSITION_INDEPENDENT_CODE ON)
-PackageHelperTarget(tensorboard_logger TBL_FOUND)
+if (UNIX)
+    add_subdirectory(External/tensorboard_logger)
+    set_property(TARGET tensorboard_logger PROPERTY POSITION_INDEPENDENT_CODE ON)
+    PackageHelperTarget(tensorboard_logger TBL_FOUND)
+    add_compile_definitions(TBLOGGER)
+endif ()
 
 ############# COMPILER FLAGS ###############
 
@@ -81,7 +80,9 @@ set(LIBS ${LIBS} ${LIB_TARGETS})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
+#dll has all symbols, to avoid __declspecs everywhere
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+include(GenerateExportHeader)
 
 ############# SOURCE ###############
 

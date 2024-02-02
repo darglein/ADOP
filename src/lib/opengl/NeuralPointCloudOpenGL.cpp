@@ -6,6 +6,7 @@
 
 
 #include "NeuralPointCloudOpenGL.h"
+#include "saiga/core/imgui/imgui.h"
 
 using namespace Saiga;
 template <>
