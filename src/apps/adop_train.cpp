@@ -585,7 +585,6 @@ class NeuralTrainer
             {
                 for (int i = 0; i < result.image_ids.size(); ++i)
                 {
-                    // In average only write 10 images
                         auto err = ImageTransformation::ErrorImage(result.outputs[i], result.targets[i]);
                         TemplatedImage<ucvec3> combined(err.h, err.w + result.outputs[i].w);
                         combined.getImageView().setSubImage(0, 0, result.outputs[i].getImageView());
@@ -599,6 +598,7 @@ class NeuralTrainer
                                                leadingZeroString(result.image_ids[i], 5) + "_gt" +
                                                params->train_params.output_file_type);
 
+                    // In average only write 10 images to TB
                     if (Random::sampleBool(std::min(1.0, 10.0 / loader_size)))
                     {
 #ifdef TBLOGGER
