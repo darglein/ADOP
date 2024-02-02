@@ -9,32 +9,31 @@ function(add_app TARGET_NAME ADD_DLL_POSTBUILD)
     endif ()
 
 
-	# ----------------------------------------------------------
-	# dll copy
-	if(WIN32)
-		if(ADD_DLL_POSTBUILD)
-			add_custom_command(TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/src/lib/$<CONFIG>/NeuralPoints.dll" $<TARGET_FILE_DIR:${TARGET_NAME}>)
+    # ----------------------------------------------------------
+    # dll copy
+    if (WIN32)
+        if (ADD_DLL_POSTBUILD)
+            add_custom_command(TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PROJECT_BINARY_DIR}/src/lib/$<CONFIG>/NeuralPoints.dll" $<TARGET_FILE_DIR:${TARGET_NAME}>)
 
-			set(copyDest  "${PROJECT_BINARY_DIR}/bin/$<CONFIG>/")
+            set(copyDest "${PROJECT_BINARY_DIR}/bin/$<CONFIG>/")
 
-			function(SANITIZE_DLL_PATHS_AND_COPY PATHS_DLLS PATHS_OUTPUT)
-				#Sanitizes paths to remove backslashes
-				STRING(REGEX REPLACE "/" "\\\\"  copyInput \"${PATHS_DLLS}\")
-				STRING(REGEX REPLACE "/" "\\\\"  copyDestination \"${PATHS_OUTPUT}\")
-				message("dll post build copy: copying ${copyInput} to ${copyDestination}.")
+            function(SANITIZE_DLL_PATHS_AND_COPY PATHS_DLLS PATHS_OUTPUT)
+                #Sanitizes paths to remove backslashes
+                STRING(REGEX REPLACE "/" "\\\\" copyInput \"${PATHS_DLLS}\")
+                STRING(REGEX REPLACE "/" "\\\\" copyDestination \"${PATHS_OUTPUT}\")
+                message("dll post build copy: copying ${copyInput} to ${copyDestination}.")
 
-				add_custom_command(TARGET ${TARGET_NAME} POST_BUILD COMMAND COMMAND copy ${copyInput} ${copyDestination})
-			endfunction()
+                add_custom_command(TARGET ${TARGET_NAME} POST_BUILD COMMAND COMMAND copy ${copyInput} ${copyDestination})
+            endfunction()
 
-			SANITIZE_DLL_PATHS_AND_COPY("${CONDA_P_PATH}/Lib/site-packages/torch/lib/*.dll" ${copyDest})
-			SANITIZE_DLL_PATHS_AND_COPY("${CONDA_P_PATH}/Library/bin/win64/Release/*.dll" ${copyDest})
-			SANITIZE_DLL_PATHS_AND_COPY("${CONDA_P_PATH}/Library/bin/uv.dll" ${copyDest})
-			SANITIZE_DLL_PATHS_AND_COPY("${CONDA_P_PATH}/Library/bin/nvToolsExt64_1.dll" ${copyDest})
-			SANITIZE_DLL_PATHS_AND_COPY("${CONDA_P_PATH}/Library/bin/libiomp5md.dll" ${copyDest})
+            SANITIZE_DLL_PATHS_AND_COPY("${PROJECT_BINARY_DIR}/../External/libtorch/lib/*.dll" ${copyDest})
+
+            SANITIZE_DLL_PATHS_AND_COPY("${CONDA_P_PATH}/bin/libiomp5md.dll" ${copyDest})
 			SANITIZE_DLL_PATHS_AND_COPY("${PROJECT_BINARY_DIR}/External/saiga/bin/$<CONFIG>/*.dll" ${copyDest})
-			SANITIZE_DLL_PATHS_AND_COPY("${PROJECT_BINARY_DIR}/External/torchvision/$<CONFIG>/*.dll" ${copyDest})
-		endif()
-	endif()
+			SANITIZE_DLL_PATHS_AND_COPY("${CUDA_P_PATH}/bin/*.dll" ${copyDest})
+
+        endif ()
+    endif ()
 
     message(STATUS "App enabled:       ${TARGET_NAME}")
 endfunction()

@@ -50,10 +50,12 @@ set(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed")
 include_directories(.)
 include_directories(${PACKAGE_INCLUDES})
 
-add_subdirectory(External/tensorboard_logger)
-#target_include_directories(tensorboard_logger PUBLIC External/tensorboard_logger/include ${CMAKE_CURRENT_BINARY_DIR}/External/tensorboard_logger)
-set_property(TARGET tensorboard_logger PROPERTY POSITION_INDEPENDENT_CODE ON)
-PackageHelperTarget(tensorboard_logger TBL_FOUND)
+if (UNIX)
+    add_subdirectory(External/tensorboard_logger)
+    set_property(TARGET tensorboard_logger PROPERTY POSITION_INDEPENDENT_CODE ON)
+    PackageHelperTarget(tensorboard_logger TBL_FOUND)
+    add_compile_definitions(TBLOGGER)
+endif ()
 
 ############# COMPILER FLAGS ###############
 

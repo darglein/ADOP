@@ -65,7 +65,7 @@ if(WIN32)
 	#build shared lib flags
     target_compile_definitions(${TARGET_NAME} PRIVATE -DBUILD_NEURAL_POINTS_DLL)
     target_compile_definitions(${TARGET_NAME} PRIVATE -DBUILD_SHARED_LIBS)
-	
+
     #torch_cpu and torch_cuda interface compiler flags which need to be "escaped" with -Xcompiler
     function(CUDA_CONVERT_FLAGS EXISTING_TARGET)
         get_property(old_flags TARGET ${EXISTING_TARGET} PROPERTY INTERFACE_COMPILE_OPTIONS)
@@ -79,7 +79,7 @@ if(WIN32)
         endif()
     endfunction()
 
-    CUDA_CONVERT_FLAGS(torch_cpu)
-    CUDA_CONVERT_FLAGS(torch_cuda)
+    #CUDA_CONVERT_FLAGS(torch_cpu)
+    #CUDA_CONVERT_FLAGS(torch_cuda)
 
 endif()

@@ -7,7 +7,11 @@
 #include "saiga/core/util/commandLineArguments.h"
 #include "saiga/core/util/exif/TinyEXIF.h"
 #include "saiga/core/util/file.h"
+#include <array>
+
 #include "saiga/vision/cameraModel/OCam.h"
+#define SAIGA_VISION_API //colmap reader is exported with dll declspec, this removes this
+
 #include "saiga/vision/util/ColmapReader.h"
 
 #include "data/SceneData.h"

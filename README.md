@@ -47,9 +47,11 @@ well over 100M points in real time.
 
 If you found this repository interesting, take a look at our follow-up works:
 
-* [VET: Visual Error Tomography for Point Cloud Completion and High-Quality Neural Rendering](https://lfranke.github.io/vet/): Improving quality by completing the COLMAP pointclouds used by ADOP during training - [Code](https://github.com/lfranke/VET)
+* [VET: Visual Error Tomography for Point Cloud Completion and High-Quality Neural Rendering](https://lfranke.github.io/vet/): Improving quality by completing the used pointclouds during training in the ADOP pipeline - [Code](https://github.com/lfranke/VET)
 
-* [TRIPS: Trilinear Point Splatting for Real-Time Radiance Field Rendering](https://lfranke.github.io/trips/): ADOP follow-up work with non-approximate gradients, smaller neural network, less flickering and faster rendering  - [Code](https://github.com/lfranke/TRIPS)
+* [TRIPS: Trilinear Point Splatting for Real-Time Radiance Field Rendering](https://lfranke.github.io/trips/): ADOP follow-up work with non-approximate gradients, smaller neural network, less flickering and faster rendering. This paper also includes ADOP metrics for the common MipNeRF-360 dataset as well as more Tanks and Temples scenes.  - [Code](https://github.com/lfranke/TRIPS)
+
+
 
 ## Notes
 
@@ -58,7 +60,7 @@ This repository was updated to a more recent torch and CUDA version in January 2
 
 ## README Hierarchy
 
-There are additional READMEs in subfolders. Take a look at [src/README.md](src/README.md) and [src/README_WINDOWS.md](src/README_WINDOWS.md)(depricated) for compile instructions and [scenes/README.md](scenes/README.md) for information on custom datasets.
+There are additional READMEs in subfolders. Take a look at [src/README.md](src/README.md) and [src/README_WINDOWS.md](src/README_WINDOWS.md) for compile instructions and [scenes/README.md](scenes/README.md) for information on custom datasets.
 
 ## Compile Instructions
 
